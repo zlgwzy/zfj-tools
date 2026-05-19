@@ -25,7 +25,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const description = ref('')
     const fontSize = ref(26)
     const textColor = ref('#f02f2f')
-    const fontFamily = ref('PingFang SC, Microsoft YaHei')
+    const fontFamily = ref('STKaiti, KaiTi')
     const firstLineAlign = ref('center')
     const imageList = ref<ImageItem[]>(createImageList(gridType))
 
@@ -33,7 +33,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       description.value = ''
       fontSize.value = 26
       textColor.value = '#f02f2f'
-      fontFamily.value = 'PingFang SC, Microsoft YaHei'
+      fontFamily.value = 'STKaiti, KaiTi'
       firstLineAlign.value = 'center'
       imageList.value = createImageList(gridType)
     }
@@ -55,7 +55,7 @@ export const usePhotoStitching2Store = defineStore('photoStitching2', () => {
   const description = ref('')
   const fontSize = ref(26)
   const textColor = ref('#f02f2f')
-  const fontFamily = ref('PingFang SC, Microsoft YaHei')
+  const fontFamily = ref('STKaiti, KaiTi')
   const firstLineAlign = ref('center')
   const imageList = ref<ImageItem[]>(createImageList(2))
 
@@ -63,7 +63,7 @@ export const usePhotoStitching2Store = defineStore('photoStitching2', () => {
     description.value = ''
     fontSize.value = 26
     textColor.value = '#f02f2f'
-    fontFamily.value = 'PingFang SC, Microsoft YaHei'
+    fontFamily.value = 'STKaiti, KaiTi'
     firstLineAlign.value = 'center'
     imageList.value = createImageList(2)
   }
