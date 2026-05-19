@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "reportDate": "2025.08.11",
+    "member": "李伟",
+    "location": "一号冰站门口",
+    "problem": "止车桩脱落",
+    "beforeImage": "before_001.jpg",
+    "dutyUnit": "基设所",
+    "feedback": "已处置",
+    "afterImage": "after_001.jpg",
+    "remark": ""
+  },
+  {
+    "id": 2,
+    "reportDate": "2025.08.12",
+    "member": "张强",
+    "location": "南门十字路口",
+    "problem": "井盖缺失",
+    "beforeImage": "before_002.jpg",
+    "dutyUnit": "市政维护中心",
+    "feedback": "处理中",
+    "afterImage": "",
+    "remark": "已设置临时围挡"
+  }
+]

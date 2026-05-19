@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+  display: flex;
+  min-width: 1400px;
+}
+
+
+#app {
+  width: 100%;
+  text-align: center;
+  min-width: 1400px;
+}
