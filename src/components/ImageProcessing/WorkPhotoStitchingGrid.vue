@@ -495,7 +495,7 @@ const gridStyle = computed(() => {
   line-height: 1.5;
   text-align: left;
   padding: 20px 0;
-  white-space: pre-line;
+  white-space: pre-wrap;
 }
 
 .first-line {
