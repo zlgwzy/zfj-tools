@@ -11,9 +11,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": ["vite/client", "element-plus/global"],
     "allowJs": true,
