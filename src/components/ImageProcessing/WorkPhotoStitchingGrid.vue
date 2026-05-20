@@ -145,39 +145,62 @@ const handleImageUpload = async (e: Event, index: number) => {
   const files = (e.target as HTMLInputElement).files
   if (!files || files.length === 0) return
 
-  const remainingSlots = imageList.value.filter(img => !img.url).length
-  const filesToProcess = Math.min(files.length, remainingSlots)
+  const hasExistingImage = !!imageList.value[index].url
 
-  let currentIndex = index
-  for (let i = 0; i < filesToProcess; i++) {
-    const file = files[i]
+  if (hasExistingImage) {
+    // 替换当前格子的图片
+    const file = files[0]
     try {
       const compressedDataUrl = await compressImage(file)
-      while (currentIndex < imageList.value.length && imageList.value[currentIndex].url) {
-        currentIndex++
-      }
-      if (currentIndex < imageList.value.length) {
-        imageList.value[currentIndex].url = compressedDataUrl
-      }
+      imageList.value[index].url = compressedDataUrl
     } catch (error) {
       console.error('图片压缩失败:', error)
       ElMessage.error(`图片 ${file.name} 压缩失败，将使用原始文件`)
       const reader = new FileReader()
       reader.onload = (e) => {
+        imageList.value[index].url = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    }
+  } else {
+    // 从当前格子开始填充空位
+    const remainingSlots = imageList.value.filter(img => !img.url).length
+    const filesToProcess = Math.min(files.length, remainingSlots)
+
+    let currentIndex = index
+    for (let i = 0; i < filesToProcess; i++) {
+      const file = files[i]
+      try {
+        const compressedDataUrl = await compressImage(file)
         while (currentIndex < imageList.value.length && imageList.value[currentIndex].url) {
           currentIndex++
         }
         if (currentIndex < imageList.value.length) {
-          imageList.value[currentIndex].url = e.target?.result as string
+          imageList.value[currentIndex].url = compressedDataUrl
         }
+      } catch (error) {
+        console.error('图片压缩失败:', error)
+        ElMessage.error(`图片 ${file.name} 压缩失败，将使用原始文件`)
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          while (currentIndex < imageList.value.length && imageList.value[currentIndex].url) {
+            currentIndex++
+          }
+          if (currentIndex < imageList.value.length) {
+            imageList.value[currentIndex].url = e.target?.result as string
+          }
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
+    }
+
+    if (files.length > filesToProcess) {
+      ElMessage.warning(`已上传 ${filesToProcess} 张图片，剩余 ${files.length - filesToProcess} 张图片未处理`)
     }
   }
 
-  if (files.length > filesToProcess) {
-    ElMessage.warning(`已上传 ${filesToProcess} 张图片，剩余 ${files.length - filesToProcess} 张图片未处理`)
-  }
+  // 重置 input，允许重新选择同一文件
+  ;(e.target as HTMLInputElement).value = ''
 }
 
 // 处理图片缩放
