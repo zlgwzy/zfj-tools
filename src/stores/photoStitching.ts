@@ -27,6 +27,11 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const textColor = ref('#f02f2f')
     const fontFamily = ref('STKaiti, KaiTi')
     const firstLineAlign = ref('center')
+    const useArtText = ref(false)
+    const artTextUrl = ref('')
+    const artTextScale = ref(1)
+    const artTextX = ref(20)
+    const artTextY = ref(60)
     const imageList = ref<ImageItem[]>(createImageList(gridType))
 
     const resetState = () => {
@@ -35,6 +40,10 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       textColor.value = '#f02f2f'
       fontFamily.value = 'STKaiti, KaiTi'
       firstLineAlign.value = 'center'
+      artTextUrl.value = ''
+      artTextScale.value = 1
+      artTextX.value = 20
+      artTextY.value = 60
       imageList.value = createImageList(gridType)
     }
 
@@ -44,6 +53,11 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       textColor,
       fontFamily,
       firstLineAlign,
+      useArtText,
+      artTextUrl,
+      artTextScale,
+      artTextX,
+      artTextY,
       imageList,
       resetState
     }

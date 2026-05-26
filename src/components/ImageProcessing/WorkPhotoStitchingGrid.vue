@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import html2canvas from 'html2canvas'
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { usePhotoStitchingStore } from '@/stores/photoStitching'
+import artTextImg3 from '@/assets/art_fonts/美酒名城画境绵竹-夏日版.png'
+import artTextImg4 from '@/assets/art_fonts/美酒名城画境绵竹-执法版.png'
+
+// 艺术字模板列表
+const artTextTemplates = [
+  { name: '美酒名城·画境绵竹\n夏日版', file: artTextImg3 },
+  { name: '美酒名城·画境绵竹\n执法版', file: artTextImg4 }
+]
+
+// 选择艺术字模板
+const selectArtTextTemplate = (url: string) => {
+  artTextUrl.value = url
+}
 
 const props = defineProps<{
   gridType: 4 | 6
@@ -31,6 +44,26 @@ const fontFamily = computed({
 const firstLineAlign = computed({
   get: () => store.firstLineAlign,
   set: (value: string) => store.firstLineAlign = value
+})
+const useArtText = computed({
+  get: () => store.useArtText,
+  set: (value: boolean) => store.useArtText = value
+})
+const artTextUrl = computed({
+  get: () => store.artTextUrl,
+  set: (value: string) => store.artTextUrl = value
+})
+const artTextScale = computed({
+  get: () => store.artTextScale,
+  set: (value: number) => store.artTextScale = value
+})
+const artTextX = computed({
+  get: () => store.artTextX,
+  set: (value: number) => store.artTextX = value
+})
+const artTextY = computed({
+  get: () => store.artTextY,
+  set: (value: number) => store.artTextY = value
 })
 const imageList = computed({
   get: () => store.imageList,
@@ -82,6 +115,44 @@ const handleInput = (value: string) => {
 const handleFontSizeChange = (value: number | number[]) => {
   fontSize.value = Array.isArray(value) ? value[0] : value
 }
+
+// 艺术字拖拽
+const isDraggingArtText = ref(false)
+const dragStartMouseX = ref(0)
+const dragStartMouseY = ref(0)
+const dragStartArtX = ref(0)
+const dragStartArtY = ref(0)
+
+const onArtTextMouseDown = (e: MouseEvent) => {
+  if (isExporting.value) return
+  isDraggingArtText.value = true
+  dragStartMouseX.value = e.clientX
+  dragStartMouseY.value = e.clientY
+  dragStartArtX.value = artTextX.value
+  dragStartArtY.value = artTextY.value
+  document.addEventListener('mousemove', onArtTextMouseMove)
+  document.addEventListener('mouseup', onArtTextMouseUp)
+}
+
+const onArtTextMouseMove = (e: MouseEvent) => {
+  if (!isDraggingArtText.value) return
+  const dx = e.clientX - dragStartMouseX.value
+  const dy = e.clientY - dragStartMouseY.value
+  artTextX.value = Math.round(dragStartArtX.value + dx)
+  artTextY.value = Math.round(dragStartArtY.value + dy)
+}
+
+const onArtTextMouseUp = () => {
+  isDraggingArtText.value = false
+  document.removeEventListener('mousemove', onArtTextMouseMove)
+  document.removeEventListener('mouseup', onArtTextMouseUp)
+}
+
+// 组件卸载时清理拖拽事件
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', onArtTextMouseMove)
+  document.removeEventListener('mouseup', onArtTextMouseUp)
+})
 
 const isExporting = ref(false)
 
@@ -210,6 +281,12 @@ const handleScaleChange = (index: number, value: number | number[]) => {
 
 // 导出图片
 const exportImage = async () => {
+  // 艺术字模式下未上传艺术字时阻止导出
+  if (useArtText.value && !artTextUrl.value) {
+    ElMessage.warning('请先上传艺术字图片')
+    return
+  }
+
   const element = document.getElementById('photo-container')
   if (element) {
     try {
@@ -291,7 +368,16 @@ const gridStyle = computed(() => {
   <div class="work-photo-stitching">
     <el-card class="tool-container">
       <div class="control-panel">
-        <div class="text-controls">
+        <div class="mode-switch">
+          <span class="mode-label">显示模式：</span>
+          <el-switch
+            v-model="useArtText"
+            active-text="艺术字"
+            inactive-text="文字"
+          />
+        </div>
+
+        <div v-if="!useArtText" class="text-controls">
           <div class="textarea-container">
             <div class="line-numbers">
               <div v-for="num in lineNumbers" :key="num" class="line-number">{{ num }}</div>
@@ -350,23 +436,48 @@ const gridStyle = computed(() => {
                 class="color-picker"
               />
             </div>
-            <el-button
-              type="danger"
-              size="small"
-              @click="store.resetState()"
-              class="reset-button"
-            >
-              清除内容
-            </el-button>
-            <el-button
-              type="primary"
-              size="small"
-              @click="exportImage"
-              class="export-button"
-            >
-              导出图片
-            </el-button>
           </div>
+        </div>
+
+        <div v-if="useArtText" class="art-text-controls">
+          <div class="template-section">
+            <span class="template-section-label">选择艺术字模板：</span>
+            <div class="template-grid">
+              <div
+                v-for="(tpl, idx) in artTextTemplates"
+                :key="idx"
+                class="template-card"
+                :class="{ 'is-active': artTextUrl === tpl.file }"
+                @click="selectArtTextTemplate(tpl.file)"
+              >
+                <el-image :src="tpl.file" fit="cover" class="template-thumb" />
+                <span class="template-name">{{ tpl.name }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-if="artTextUrl" class="art-text-adjust-controls">
+            <div class="art-text-scale-control">
+              <span class="art-text-scale-label">缩放：</span>
+              <el-slider
+                v-model="artTextScale"
+                :min="0.3"
+                :max="3"
+                :step="0.1"
+                class="compact-slider"
+              />
+            </div>
+            <el-button size="small" @click="artTextUrl = ''">清除模板</el-button>
+            <span class="art-text-drag-hint">拖拽艺术字可自由移动位置</span>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <el-button type="danger" size="small" @click="store.resetState()" class="reset-button">
+            清除内容
+          </el-button>
+          <el-button type="primary" size="small" @click="exportImage" class="export-button">
+            导出图片
+          </el-button>
         </div>
       </div>
 
@@ -386,9 +497,14 @@ const gridStyle = computed(() => {
               </template>
             </el-image>
           </div>
-          <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
-            <div class="first-line" :style="{ textAlign: firstLineAlign as 'center' | 'left' }">{{ firstLine }}</div>
-            <div class="other-lines">{{ otherLines }}</div>
+          <template v-if="!useArtText">
+            <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
+              <div class="first-line" :style="{ textAlign: firstLineAlign as 'center' | 'left' }">{{ firstLine }}</div>
+              <div class="other-lines">{{ otherLines }}</div>
+            </div>
+          </template>
+          <div v-if="useArtText && !artTextUrl" class="banner-art-text-placeholder">
+            <span>请上传艺术字</span>
           </div>
         </div>
         <div class="photo-grid" :style="gridStyle">
@@ -413,10 +529,11 @@ const gridStyle = computed(() => {
                 willChange: 'transform'
               }"
             >
-              <el-image
+              <img
                 v-if="item.url"
                 :src="item.url"
-                fit="cover"
+                class="grid-image"
+                draggable="false"
               />
               <div v-else class="upload-placeholder">
                 <el-icon>
@@ -446,6 +563,20 @@ const gridStyle = computed(() => {
               />
             </div>
           </div>
+        </div>
+        <!-- 艺术字浮层 -->
+        <div
+          v-if="useArtText && artTextUrl"
+          class="art-text-overlay"
+          :style="{
+            left: artTextX + 'px',
+            top: artTextY + 'px',
+            transform: `scale(${artTextScale})`,
+            cursor: isDraggingArtText ? 'grabbing' : 'grab'
+          }"
+          @mousedown="onArtTextMouseDown"
+        >
+          <img :src="artTextUrl" class="art-text-overlay-img" draggable="false" />
         </div>
       </div>
     </el-card>
@@ -479,6 +610,7 @@ const gridStyle = computed(() => {
   margin-top: 20px;
   border: 1px solid #dcdfe6;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .photo-container.is-exporting {
@@ -494,7 +626,8 @@ const gridStyle = computed(() => {
 }
 
 .banner-logo {
-  flex: 1;
+  flex: 0 0 auto;
+  width: 300px;
   height: 100%;
   min-height: 80px;
   display: flex;
@@ -604,6 +737,15 @@ const gridStyle = computed(() => {
 .upload-placeholder span {
   font-size: 14px;
   line-height: 1.5;
+}
+
+.grid-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  pointer-events: none;
 }
 
 .file-input {
@@ -799,6 +941,149 @@ const gridStyle = computed(() => {
 .compact-slider :deep(.el-slider__button) {
   width: 12px;
   height: 12px;
+}
+
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  margin-bottom: 16px;
+}
+
+.mode-label {
+  font-size: 14px;
+  color: #606266;
+  min-width: 60px;
+}
+
+.art-text-controls {
+  padding: 0 12px;
+}
+
+.template-section {
+  margin-bottom: 12px;
+}
+
+.template-section-label {
+  display: block;
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.template-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.template-card {
+  width: 180px;
+  border: 2px solid #dcdfe6;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafafa;
+}
+
+.template-card:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+}
+
+.template-card.is-active {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.3);
+}
+
+.template-thumb {
+  width: 100%;
+  height: 100px;
+  display: block;
+}
+
+.template-name {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+  color: #303133;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.art-text-adjust-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.art-text-scale-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.art-text-scale-label {
+  font-size: 14px;
+  color: #606266;
+  min-width: 30px;
+}
+
+.art-text-drag-hint {
+  font-size: 12px;
+  color: #909399;
+  margin-left: auto;
+}
+
+.art-text-adjust-controls .compact-slider {
+  width: 120px;
+}
+
+.art-text-overlay {
+  position: absolute;
+  z-index: 10;
+  line-height: 0;
+  user-select: none;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.art-text-overlay:hover {
+  outline: 2px dashed #409eff;
+  outline-offset: 2px;
+}
+
+.art-text-overlay-img {
+  max-width: 600px;
+  max-height: 400px;
+  pointer-events: none;
+  display: block;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  padding: 16px 12px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 16px;
+}
+
+.banner-art-text-placeholder {
+  flex: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  font-size: 16px;
+  padding: 20px 0;
+  min-height: 80px;
 }
 
 .reset-button {

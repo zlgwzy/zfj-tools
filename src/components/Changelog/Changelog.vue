@@ -58,7 +58,7 @@ onMounted(async () => {
 
 <style scoped>
 .changelog-container {
-  max-width: 800px;
+  max-width: 950px;
   margin: 0 auto;
   padding: 20px;
   animation: fade-in 0.3s ease-in-out;
@@ -95,6 +95,7 @@ onMounted(async () => {
   background: linear-gradient(145deg, var(--el-bg-color), var(--el-bg-color-overlay));
   border: 1px solid rgba(var(--el-color-primary-rgb), 0.1);
   backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
 .changelog-card:hover {
@@ -135,10 +136,14 @@ onMounted(async () => {
   50% { transform: translateY(-5px); }
 }
 
-.changelog-content {
+.changelog-card :deep(.el-card__body) {
   padding: 28px;
+  overflow-x: hidden;
+}
+
+.changelog-content {
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .error-container {
@@ -199,6 +204,11 @@ onMounted(async () => {
   line-height: 1.25;
 }
 
+:deep(.markdown-body p) {
+  text-indent: 2em;
+  line-height: 1.8;
+}
+
 :deep(.markdown-body ul) {
   padding-left: 2em;
   margin-top: 0;
@@ -242,10 +252,10 @@ onMounted(async () => {
 }
 
 :deep(.markdown-body ol) {
-  padding-left: 2em;
+  padding-left: 1.5em;
   margin-top: 0;
   margin-bottom: 16px;
-  list-style-position: outside;
+  list-style-position: inside;
   counter-reset: item;
 }
 
@@ -280,8 +290,8 @@ onMounted(async () => {
   .changelog-container {
     padding: 10px;
   }
-  
-  .changelog-content {
+
+  .changelog-card :deep(.el-card__body) {
     padding: 16px;
   }
   
