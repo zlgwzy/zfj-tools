@@ -65,6 +65,18 @@ const artTextY = computed({
   get: () => store.artTextY,
   set: (value: number) => store.artTextY = value
 })
+const annotationFontSize = computed({
+  get: () => store.annotationFontSize,
+  set: (value: number) => store.annotationFontSize = value
+})
+const annotationFontFamily = computed({
+  get: () => store.annotationFontFamily,
+  set: (value: string) => store.annotationFontFamily = value
+})
+const annotationColor = computed({
+  get: () => store.annotationColor,
+  set: (value: string) => store.annotationColor = value
+})
 const imageList = computed({
   get: () => store.imageList,
   set: (value) => {
@@ -482,6 +494,41 @@ const gridStyle = computed(() => {
 
         <div class="annotation-controls">
           <div class="annotation-header">图片标注</div>
+          <div class="annotation-style-controls">
+            <div class="ann-style-item">
+              <span class="ann-style-label">字号：</span>
+              <el-slider
+                v-model="annotationFontSize"
+                :min="12"
+                :max="28"
+                :step="1"
+                class="compact-slider"
+              />
+            </div>
+            <div class="ann-style-item">
+              <span class="ann-style-label">字体：</span>
+              <el-select
+                v-model="annotationFontFamily"
+                size="small"
+                class="font-select"
+              >
+                <el-option
+                  v-for="item in fontOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </div>
+            <div class="ann-style-item">
+              <span class="ann-style-label">颜色：</span>
+              <el-color-picker
+                v-model="annotationColor"
+                show-alpha
+                class="ann-color-picker"
+              />
+            </div>
+          </div>
           <div
             v-for="(item, index) in imageList"
             :key="item.id"
@@ -585,6 +632,11 @@ const gridStyle = computed(() => {
               v-if="item.annotation"
               class="annotation-label"
               :class="'pos-' + item.annotationPos"
+              :style="{
+                fontSize: annotationFontSize + 'px',
+                fontFamily: annotationFontFamily,
+                color: annotationColor
+              }"
             >
               {{ item.annotation }}
             </div>
@@ -1158,18 +1210,51 @@ const gridStyle = computed(() => {
   font-size: 13px;
 }
 
+.annotation-style-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 10px;
+  flex-wrap: wrap;
+}
+
+.ann-style-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ann-style-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.ann-style-item .compact-slider {
+  width: 100px;
+}
+
+.ann-color-picker {
+  width: 36px;
+  height: 28px;
+}
+
+.ann-color-picker :deep(.el-color-picker__trigger) {
+  width: 36px;
+  height: 28px;
+  padding: 3px;
+}
+
 .annotation-label {
   position: absolute;
   z-index: 4;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 4px 10px;
-  font-size: 13px;
+  padding: 4px 8px;
   line-height: 1.4;
-  border-radius: 3px;
   pointer-events: none;
   max-width: calc(100% - 16px);
   word-break: break-word;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .annotation-label.pos-top-left {
