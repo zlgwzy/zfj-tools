@@ -232,6 +232,17 @@ const compressImage = (file: File): Promise<string> => {
   })
 }
 
+// 压缩失败时的兜底：直接读取原始文件
+const fallbackReadFile = (file: File, idx: number) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    if (idx >= 0 && idx < imageList.value.length) {
+      imageList.value[idx].url = e.target?.result as string
+    }
+  }
+  reader.readAsDataURL(file)
+}
+
 // 处理图片上传
 const handleImageUpload = async (e: Event, index: number) => {
   const files = (e.target as HTMLInputElement).files
@@ -240,7 +251,6 @@ const handleImageUpload = async (e: Event, index: number) => {
   const hasExistingImage = !!imageList.value[index].url
 
   if (hasExistingImage) {
-    // 替换当前格子的图片
     const file = files[0]
     try {
       const compressedDataUrl = await compressImage(file)
@@ -248,14 +258,9 @@ const handleImageUpload = async (e: Event, index: number) => {
     } catch (error) {
       console.error('图片压缩失败:', error)
       ElMessage.error(`图片 ${file.name} 压缩失败，将使用原始文件`)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        imageList.value[index].url = e.target?.result as string
-      }
-      reader.readAsDataURL(file)
+      fallbackReadFile(file, index)
     }
   } else {
-    // 从当前格子开始填充空位
     const remainingSlots = imageList.value.filter(img => !img.url).length
     const filesToProcess = Math.min(files.length, remainingSlots)
 
@@ -273,16 +278,10 @@ const handleImageUpload = async (e: Event, index: number) => {
       } catch (error) {
         console.error('图片压缩失败:', error)
         ElMessage.error(`图片 ${file.name} 压缩失败，将使用原始文件`)
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          while (currentIndex < imageList.value.length && imageList.value[currentIndex].url) {
-            currentIndex++
-          }
-          if (currentIndex < imageList.value.length) {
-            imageList.value[currentIndex].url = e.target?.result as string
-          }
+        while (currentIndex < imageList.value.length && imageList.value[currentIndex].url) {
+          currentIndex++
         }
-        reader.readAsDataURL(file)
+        fallbackReadFile(file, currentIndex)
       }
     }
 
@@ -291,7 +290,6 @@ const handleImageUpload = async (e: Event, index: number) => {
     }
   }
 
-  // 重置 input，允许重新选择同一文件
   ;(e.target as HTMLInputElement).value = ''
 }
 
@@ -855,14 +853,6 @@ const gridStyle = computed(() => {
   opacity: 0;
   cursor: pointer;
   z-index: 2;
-}
-
-.action-panel {
-  margin-top: 20px;
-  text-align: center;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
 }
 
 .scale-control {
