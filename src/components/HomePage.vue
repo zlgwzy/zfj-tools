@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import WorkPhotoStitching2 from './ImageProcessing/WorkPhotoStitching_2.vue'
 import WorkPhotoStitching from './ImageProcessing/WorkPhotoStitchingGrid.vue'
 import WorkPhotoStitching6 from './ImageProcessing/WorkPhotoStitchingGrid.vue'
 import WorkPhotoStitchingLong from './ImageProcessing/WorkPhotoStitching_Long.vue'
@@ -48,9 +47,6 @@ onMounted(() => {
               <span>图片处理</span>
             </template>
             <el-menu-item index="2-1">
-              <span>工作照拼接-两宫格</span>
-            </el-menu-item>
-            <el-menu-item index="2-2">
               <span>工作照拼接-四宫格</span>
             </el-menu-item>
             <el-menu-item index="2-3">
@@ -97,8 +93,7 @@ onMounted(() => {
           </div>
 
           <!-- 工作照片拼接工具 -->
-          <WorkPhotoStitching2 v-if="activeIndex === '2-1'" />
-          <WorkPhotoStitching v-if="activeIndex === '2-2'" :grid-type="4" />
+          <WorkPhotoStitching v-if="activeIndex === '2-1'" :grid-type="4" />
           <WorkPhotoStitching6 v-if="activeIndex === '2-3'" :grid-type="6" />
           <WorkPhotoStitchingLong v-if="activeIndex === '2-4'" />
           
