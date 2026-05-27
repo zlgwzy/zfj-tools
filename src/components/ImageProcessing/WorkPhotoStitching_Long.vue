@@ -1,12 +1,36 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
 interface ImageItem {
   id: string
   url: string
   file: File
+  annotation: string
+  annotationPos: string
 }
+
+const annotationFontSize = ref(25)
+const annotationFontFamily = ref('STHeiti, SimHei')
+const annotationColor = ref('#ffffff')
+
+const fontOptions = [
+  { value: 'PingFang SC, Microsoft YaHei', label: '微软雅黑' },
+  { value: 'STSong, SimSun', label: '宋体' },
+  { value: 'STHeiti, SimHei', label: '黑体' },
+  { value: 'STKaiti, KaiTi', label: '楷体' },
+  { value: 'STFangsong, FangSong', label: '仿宋' }
+]
+
+const positionOptions = [
+  { value: 'top-left', label: '左上角' },
+  { value: 'top-center', label: '顶部居中' },
+  { value: 'top-right', label: '右上角' },
+  { value: 'center', label: '居中' },
+  { value: 'bottom-left', label: '左下角' },
+  { value: 'bottom-center', label: '底部居中' },
+  { value: 'bottom-right', label: '右下角' }
+]
 
 const imageList = ref<ImageItem[]>([])
 const resultImage = ref<string>('')
@@ -91,7 +115,9 @@ const handleFileSelect = async (e: Event) => {
         newImages.push({
           id: generateId(),
           url: dataUrl,
-          file: file
+          file: file,
+          annotation: '',
+          annotationPos: 'bottom-right'
         })
       } catch (error) {
         console.error(`处理文件 ${file.name} 失败:`, error)
@@ -144,7 +170,9 @@ const handlePaste = async (event: ClipboardEvent) => {
           imageList.value.push({
             id: generateId(),
             url: dataUrl,
-            file: blob as File
+            file: blob as File,
+            annotation: '',
+            annotationPos: 'bottom-right'
           })
           uploadProgress.value = 100
           ElMessage.success('已粘贴图片')
@@ -185,8 +213,40 @@ const moveDown = (index: number) => {
   }
 }
 
+// 在 Canvas 上绘制标注文字
+const drawAnnotation = (ctx: CanvasRenderingContext2D, text: string, pos: string, ix: number, iy: number, iw: number, ih: number) => {
+  if (!text) return
+  // 根据图片宽度等比缩放字号，确保在不同分辨率下视觉大小一致
+  const refWidth = 570
+  const imgScale = iw / refWidth
+  const size = Math.round(annotationFontSize.value * Math.max(1, imgScale))
+  const pad = Math.round(8 * Math.max(1, imgScale))
+  ctx.save()
+  ctx.font = `bold ${size}px ${annotationFontFamily.value}`
+  ctx.fillStyle = annotationColor.value
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'
+  ctx.shadowBlur = 3
+  ctx.shadowOffsetX = 1
+  ctx.shadowOffsetY = 1
+  ctx.textBaseline = 'top'
+  ctx.textAlign = 'left'
+
+  let tx = ix, ty = iy
+  switch (pos) {
+    case 'top-left':       tx = ix + pad; ty = iy + pad; break
+    case 'top-center':     tx = ix + iw / 2; ty = iy + pad; ctx.textAlign = 'center'; break
+    case 'top-right':      tx = ix + iw - pad; ty = iy + pad; ctx.textAlign = 'right'; break
+    case 'center':         tx = ix + iw / 2; ty = iy + ih / 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; break
+    case 'bottom-left':    tx = ix + pad; ty = iy + ih - pad; ctx.textBaseline = 'bottom'; break
+    case 'bottom-center':  tx = ix + iw / 2; ty = iy + ih - pad; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; break
+    case 'bottom-right':   tx = ix + iw - pad; ty = iy + ih - pad; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; break
+  }
+  ctx.fillText(text, tx, ty)
+  ctx.restore()
+}
+
 // 拼接长图
-const stitchLongImage = async () => {
+const stitchLongImage = async (isAuto = false, successMsg?: string) => {
   if (imageList.value.length < 2) {
     ElMessage.warning('请至少添加2张图片')
     return
@@ -296,15 +356,19 @@ const stitchLongImage = async () => {
           console.log(`绘制图片 ${i}:`, { x, y, w, h, scale, originalSize: { width: img.width, height: img.height } })
           
           ctx.drawImage(img, x, y, w, h)
+          const itemV = currentImageList[i]
+          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, w, h) }
           currentY += scaledHeight + spacing.value
         } else {
           // 保持原尺寸：居中对齐
           const x = Math.floor((maxWidth - img.width) / 2)
           const y = Math.floor(currentY)
-          
+
           console.log(`绘制图片 ${i}:`, { x, y, width: img.width, height: img.height })
-          
+
           ctx.drawImage(img, x, y)
+          const itemV = currentImageList[i]
+          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, img.width, img.height) }
           currentY += img.height + spacing.value
         }
         
@@ -369,6 +433,7 @@ const stitchLongImage = async () => {
           console.log(`绘制图片 ${i}:`, { x, y, w, h, scale, originalSize: { width: img.width, height: img.height } })
           
           ctx.drawImage(img, x, y, w, h)
+          const itemH1 = currentImageList[i]; if (itemH1.annotation) { drawAnnotation(ctx, itemH1.annotation, itemH1.annotationPos, x, y, w, h) }
           currentX += scaledWidth + spacing.value
         } else if (uniformWidth.value) {
           // 统一宽度：按比例缩放图片到统一宽度
@@ -383,6 +448,7 @@ const stitchLongImage = async () => {
           console.log(`绘制图片 ${i}:`, { x, y, w, h, scale, originalSize: { width: img.width, height: img.height } })
           
           ctx.drawImage(img, x, y, w, h)
+          const itemH2 = currentImageList[i]; if (itemH2.annotation) { drawAnnotation(ctx, itemH2.annotation, itemH2.annotationPos, x, y, w, h) }
           currentX += maxWidth + spacing.value
         } else {
           // 保持原尺寸：居中对齐
@@ -393,6 +459,7 @@ const stitchLongImage = async () => {
           
           ctx.drawImage(img, x, y)
           currentX += img.width + spacing.value
+          const itemH3 = currentImageList[i]; if (itemH3.annotation) { drawAnnotation(ctx, itemH3.annotation, itemH3.annotationPos, x, y, img.width, img.height) }
         }
         
         // 更新进度
@@ -407,17 +474,31 @@ const stitchLongImage = async () => {
     
     // 生成最终图片
     processingProgress.value = 90
-    
+
     console.log('Canvas尺寸:', canvas.width, 'x', canvas.height)
-    
-    // 生成图片，使用更高的质量
+
+    // 输出图片压缩：超过最长边 2000px 则等比缩放，并使用 JPEG 格式
     try {
-      resultImage.value = canvas.toDataURL('image/png', 1.0)
-      // 保存Canvas引用供后续使用
-      canvasRef.value = canvas
-      
+      const maxOutput = 2000
+      let outputCanvas = canvas
+      if (canvas.width > maxOutput || canvas.height > maxOutput) {
+        const s = Math.min(1, maxOutput / Math.max(canvas.width, canvas.height))
+        const tw = Math.floor(canvas.width * s)
+        const th = Math.floor(canvas.height * s)
+        const tmp = document.createElement('canvas')
+        tmp.width = tw
+        tmp.height = th
+        const tctx = tmp.getContext('2d')!
+        tctx.imageSmoothingEnabled = true
+        tctx.imageSmoothingQuality = 'high'
+        tctx.drawImage(canvas, 0, 0, tw, th)
+        outputCanvas = tmp
+      }
+      resultImage.value = outputCanvas.toDataURL('image/jpeg', 0.92)
+      canvasRef.value = outputCanvas
+
       processingProgress.value = 100
-      ElMessage.success('长图生成完成！')
+      ElMessage.success(successMsg || (isAuto ? '已自动重新生成' : '长图生成完成！'))
     } catch (error) {
       console.error('生成图片失败:', error)
       ElMessage.error('生成图片失败，请重试')
@@ -435,7 +516,7 @@ const stitchLongImage = async () => {
 // 下载结果
 const downloadResult = () => {
   if (!resultImage.value) return
-  
+
   const link = document.createElement('a')
   const now = new Date()
   const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`
@@ -443,6 +524,63 @@ const downloadResult = () => {
   link.href = resultImage.value
   link.click()
 }
+
+// 复制图片到剪贴板（转 PNG 后写入，兼容性更好）
+const copyImageToClipboard = async () => {
+  if (!resultImage.value) return
+  try {
+    const blob = await (await fetch(resultImage.value)).blob()
+    // 非 PNG 格式先转为 PNG，剪贴板 API 对 PNG 支持最好
+    if (blob.type !== 'image/png') {
+      const img = await createImageBitmap(blob)
+      const cvs = document.createElement('canvas')
+      cvs.width = img.width
+      cvs.height = img.height
+      const ctx = cvs.getContext('2d')!
+      ctx.drawImage(img, 0, 0)
+      const pngBlob = await new Promise<Blob>(resolve => cvs.toBlob(b => resolve(b!), 'image/png'))
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })])
+    } else {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    }
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败，请手动下载')
+  }
+}
+
+// 生成对比图（预设处置前/处置后标注）
+const generateComparison = () => {
+  if (imageList.value.length < 2) {
+    ElMessage.warning('请至少添加2张图片')
+    return
+  }
+  annotationFontSize.value = 35
+  annotationFontFamily.value = 'STHeiti, SimHei'
+  annotationColor.value = 'rgb(255, 25, 25)'
+  imageList.value[0].annotation = '处置前'
+  imageList.value[0].annotationPos = 'center'
+  imageList.value[1].annotation = '处置后'
+  imageList.value[1].annotationPos = 'center'
+  // 清除后续图片的标注
+  for (let i = 2; i < imageList.value.length; i++) {
+    imageList.value[i].annotation = ''
+    imageList.value[i].annotationPos = 'center'
+  }
+  stitchLongImage(false, '对比图生成完成！')
+}
+
+// 切换参数后自动重新生成长图（防抖）
+const annotationSnapshot = computed(() =>
+  imageList.value.map(i => i.annotation + '|' + i.annotationPos).join(',')
+)
+let autoStitchTimer: ReturnType<typeof setTimeout> | null = null
+watch([spacing, orientation, uniformSize, uniformWidth, annotationFontSize, annotationFontFamily, annotationColor, annotationSnapshot], () => {
+  if (resultImage.value && imageList.value.length >= 2) {
+    if (autoStitchTimer) clearTimeout(autoStitchTimer)
+    autoStitchTimer = setTimeout(() => stitchLongImage(true), 300)
+  }
+})
 
 // 清空所有图片
 const clearAll = () => {
@@ -470,8 +608,11 @@ onUnmounted(() => {
         <div class="card-header">
           <span>工作照拼接 - 长图</span>
           <div class="header-actions">
-            <el-button type="primary" :disabled="imageList.length < 2" @click="stitchLongImage" :loading="isProcessing">
+            <el-button type="primary" :disabled="imageList.length < 2" @click="() => stitchLongImage()" :loading="isProcessing">
               {{ resultImage ? '重新生成' : '生成长图' }}
+            </el-button>
+            <el-button type="success" :disabled="imageList.length < 2" @click="generateComparison">
+              生成对比图
             </el-button>
             <div v-if="isProcessing" class="progress-info">
               <el-progress :percentage="processingProgress" :show-text="true" />
@@ -503,7 +644,7 @@ onUnmounted(() => {
               </el-radio-group>
             </div>
             <div v-if="!uniformSize" class="setting-item">
-              <span class="label">宽度统一：</span>
+              <span class="label">统一宽度：</span>
               <el-switch 
                 v-model="uniformWidth" 
                 active-text="统一宽度" 
@@ -521,7 +662,7 @@ onUnmounted(() => {
             </div>
             <div class="setting-item">
               <span class="label">操作提示：</span>
-              <span class="value" style="color: #409eff;">调整参数后请点击"生成长图"按钮</span>
+              <span class="value" style="color: #409eff;">调整参数后请点击"重新生成"按钮</span>
             </div>
           </div>
           
@@ -573,9 +714,30 @@ onUnmounted(() => {
         <input ref="fileInput" type="file" accept="image/*" multiple style="display: none" @change="handleFileSelect" />
       </div>
 
+      <!-- 标注设置 -->
+      <div v-if="imageList.length > 0" class="annotation-controls">
+        <div class="annotation-header">图片标注</div>
+        <div class="annotation-style-controls">
+          <div class="ann-style-item">
+            <span class="ann-style-label">字号：</span>
+            <el-slider v-model="annotationFontSize" :min="20" :max="35" :step="1" class="compact-slider" />
+          </div>
+          <div class="ann-style-item">
+            <span class="ann-style-label">字体：</span>
+            <el-select v-model="annotationFontFamily" size="small" class="font-select">
+              <el-option v-for="item in fontOptions" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+          </div>
+          <div class="ann-style-item">
+            <span class="ann-style-label">颜色：</span>
+            <el-color-picker v-model="annotationColor" show-alpha class="ann-color-picker" />
+          </div>
+        </div>
+      </div>
+
       <!-- 图片列表 -->
       <div v-if="imageList.length > 0" class="image-list-section">
-        <div class="section-title">图片列表（可拖拽排序）</div>
+        <div class="section-title">图片列表（可上下移动调整图片排序）</div>
         <div class="image-list">
           <div v-for="(item, index) in imageList" :key="item.id" class="image-item">
             <div class="image-preview">
@@ -583,6 +745,12 @@ onUnmounted(() => {
             </div>
             <div class="image-info">
               <div class="image-name">{{ item.file.name }}</div>
+              <div class="image-annotation-row">
+                <el-select v-model="item.annotationPos" size="small" class="annotation-pos-select">
+                  <el-option v-for="opt in positionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+                </el-select>
+                <el-input v-model="item.annotation" size="small" placeholder="标注文字" class="annotation-input" maxlength="20" />
+              </div>
               <div class="image-actions">
                 <el-button size="small" :disabled="index === 0" @click="moveUp(index)">上移</el-button>
                 <el-button size="small" :disabled="index === imageList.length - 1" @click="moveDown(index)">下移</el-button>
@@ -597,7 +765,10 @@ onUnmounted(() => {
       <div v-if="resultImage" class="result-section">
         <div class="result-header">
           <span>拼接结果</span>
-          <el-button type="primary" @click="downloadResult">下载长图</el-button>
+          <div class="result-actions">
+            <el-button type="primary" @click="copyImageToClipboard">复制到剪贴板</el-button>
+            <el-button type="primary" @click="downloadResult">下载长图</el-button>
+          </div>
         </div>
         <div class="result-body">
           <div class="result-preview">
@@ -846,8 +1017,9 @@ onUnmounted(() => {
 .image-info {
   flex: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
 }
 
 .image-name {
@@ -915,4 +1087,100 @@ onUnmounted(() => {
   /* 确保横向图片不被压缩 */
   flex-shrink: 0;
 }
+
+
+.image-annotation-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.annotation-pos-select {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.annotation-input {
+  flex: 1;
+}
+
+.annotation-input :deep(.el-input__inner) {
+  font-size: 13px;
+}
+
+.annotation-controls {
+  margin: 12px 0;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.annotation-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.annotation-style-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ann-style-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ann-style-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.ann-style-item .compact-slider {
+  width: 100px;
+}
+
+.font-select {
+  width: 120px;
+}
+
+.font-select :deep(.el-input__wrapper) {
+  padding: 0 8px;
+}
+
+.ann-color-picker {
+  width: 36px;
+  height: 28px;
+}
+
+.ann-color-picker :deep(.el-color-picker__trigger) {
+  width: 36px;
+  height: 28px;
+  padding: 3px;
+}
+
+.annotation-label {
+  position: absolute;
+  z-index: 4;
+  padding: 3px 6px;
+  line-height: 1.3;
+  pointer-events: none;
+  max-width: calc(100% - 10px);
+  word-break: break-word;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.annotation-label.pos-top-left { top: 4px; left: 4px; }
+.annotation-label.pos-top-center { top: 4px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.annotation-label.pos-top-right { top: 4px; right: 4px; }
+.annotation-label.pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; }
+.annotation-label.pos-bottom-left { bottom: 4px; left: 4px; }
+.annotation-label.pos-bottom-center { bottom: 4px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.annotation-label.pos-bottom-right { bottom: 4px; right: 4px; }
 </style>
