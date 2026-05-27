@@ -72,6 +72,15 @@ const imageList = computed({
   }
 })
 
+// 标注位置选项
+const positionOptions = [
+  { value: 'top-left', label: '左上角' },
+  { value: 'top-right', label: '右上角' },
+  { value: 'center', label: '居中' },
+  { value: 'bottom-left', label: '左下角' },
+  { value: 'bottom-right', label: '右下角' }
+]
+
 // 字体选项列表
 const fontOptions = [
   { value: 'PingFang SC, Microsoft YaHei', label: '微软雅黑' },
@@ -471,6 +480,36 @@ const gridStyle = computed(() => {
           </div>
         </div>
 
+        <div class="annotation-controls">
+          <div class="annotation-header">图片标注</div>
+          <div
+            v-for="(item, index) in imageList"
+            :key="item.id"
+            class="annotation-row"
+          >
+            <span class="annotation-index">图{{ index + 1 }}</span>
+            <el-select
+              v-model="item.annotationPos"
+              size="small"
+              class="annotation-pos-select"
+            >
+              <el-option
+                v-for="opt in positionOptions"
+                :key="opt.value"
+                :label="opt.label"
+                :value="opt.value"
+              />
+            </el-select>
+            <el-input
+              v-model="item.annotation"
+              size="small"
+              placeholder="输入标注文字"
+              class="annotation-input"
+              maxlength="20"
+            />
+          </div>
+        </div>
+
         <div class="action-buttons">
           <el-button type="danger" size="small" @click="store.resetState()" class="reset-button">
             清除内容
@@ -541,6 +580,13 @@ const gridStyle = computed(() => {
                 </el-icon>
                 <span>点击上传图片</span>
               </div>
+            </div>
+            <div
+              v-if="item.annotation"
+              class="annotation-label"
+              :class="'pos-' + item.annotationPos"
+            >
+              {{ item.annotation }}
             </div>
             <input
               type="file"
@@ -1065,6 +1111,91 @@ const gridStyle = computed(() => {
   max-height: 400px;
   pointer-events: none;
   display: block;
+}
+
+.annotation-controls {
+  padding: 12px;
+  margin-top: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.annotation-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.annotation-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.annotation-row:last-child {
+  margin-bottom: 0;
+}
+
+.annotation-index {
+  font-size: 13px;
+  color: #606266;
+  min-width: 36px;
+  flex-shrink: 0;
+}
+
+.annotation-pos-select {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.annotation-input {
+  flex: 1;
+}
+
+.annotation-input :deep(.el-input__inner) {
+  font-size: 13px;
+}
+
+.annotation-label {
+  position: absolute;
+  z-index: 4;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 3px;
+  pointer-events: none;
+  max-width: calc(100% - 16px);
+  word-break: break-word;
+}
+
+.annotation-label.pos-top-left {
+  top: 8px;
+  left: 8px;
+}
+
+.annotation-label.pos-top-right {
+  top: 8px;
+  right: 8px;
+}
+
+.annotation-label.pos-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.annotation-label.pos-bottom-left {
+  bottom: 8px;
+  left: 8px;
+}
+
+.annotation-label.pos-bottom-right {
+  bottom: 8px;
+  right: 8px;
 }
 
 .action-buttons {

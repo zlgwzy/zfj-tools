@@ -6,6 +6,8 @@ export interface ImageItem {
   url: string
   scale: number
   order: number
+  annotation: string
+  annotationPos: string
 }
 
 function createImageList(count: number): ImageItem[] {
@@ -13,7 +15,9 @@ function createImageList(count: number): ImageItem[] {
     id: i + 1,
     url: '',
     scale: 1,
-    order: i
+    order: i,
+    annotation: '',
+    annotationPos: 'bottom-right'
   }))
 }
 
