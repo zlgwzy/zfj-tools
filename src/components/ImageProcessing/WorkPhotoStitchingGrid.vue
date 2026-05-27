@@ -499,8 +499,8 @@ const gridStyle = computed(() => {
               <span class="ann-style-label">字号：</span>
               <el-slider
                 v-model="annotationFontSize"
-                :min="12"
-                :max="28"
+                :min="20"
+                :max="35"
                 :step="1"
                 class="compact-slider"
               />
