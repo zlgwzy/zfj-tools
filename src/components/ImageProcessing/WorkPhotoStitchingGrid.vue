@@ -5,11 +5,15 @@ import { ElMessage } from 'element-plus'
 import { usePhotoStitchingStore } from '@/stores/photoStitching'
 import artTextImg3 from '@/assets/art_fonts/美酒名城画境绵竹-夏日版.png'
 import artTextImg4 from '@/assets/art_fonts/美酒名城画境绵竹-执法版.png'
+import artTextImg5 from '@/assets/art_fonts/美酒名城画境绵竹-水墨版.png'
+import artTextImg6 from '@/assets/art_fonts/美酒名城画境绵竹-鎏金版.png'
 
 // 艺术字模板列表
 const artTextTemplates = [
   { name: '美酒名城·画境绵竹\n夏日版', file: artTextImg3 },
-  { name: '美酒名城·画境绵竹\n执法版', file: artTextImg4 }
+  { name: '美酒名城·画境绵竹\n执法版', file: artTextImg4 },
+  { name: '美酒名城·画境绵竹\n水墨版', file: artTextImg5 },
+  { name: '美酒名城·画境绵竹\n鎏金版', file: artTextImg6 }
 ]
 
 // 选择艺术字模板
