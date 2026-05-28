@@ -91,9 +91,11 @@ const imageList = computed({
 // 标注位置选项
 const positionOptions = [
   { value: 'top-left', label: '左上角' },
+  { value: 'top-center', label: '顶部居中' },
   { value: 'top-right', label: '右上角' },
   { value: 'center', label: '居中' },
   { value: 'bottom-left', label: '左下角' },
+  { value: 'bottom-center', label: '底部居中' },
   { value: 'bottom-right', label: '右下角' }
 ]
 
@@ -1209,7 +1211,6 @@ const gridStyle = computed(() => {
   align-items: center;
   gap: 20px;
   padding: 8px 0 10px;
-  flex-wrap: wrap;
 }
 
 .ann-style-item {
@@ -1265,6 +1266,7 @@ const gridStyle = computed(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  white-space: nowrap;
 }
 
 .annotation-label.pos-bottom-left {
@@ -1275,6 +1277,20 @@ const gridStyle = computed(() => {
 .annotation-label.pos-bottom-right {
   bottom: 8px;
   right: 8px;
+}
+
+.annotation-label.pos-top-center {
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.annotation-label.pos-bottom-center {
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .action-buttons {
