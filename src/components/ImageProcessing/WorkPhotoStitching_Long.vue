@@ -213,14 +213,13 @@ const moveDown = (index: number) => {
   }
 }
 
-// 在 Canvas 上绘制标注文字
-const drawAnnotation = (ctx: CanvasRenderingContext2D, text: string, pos: string, ix: number, iy: number, iw: number, ih: number) => {
+// 在 Canvas 上绘制标注文字（fontScale 为外部传入的统一缩放系数，以图一为准）
+const drawAnnotation = (ctx: CanvasRenderingContext2D, text: string, pos: string, ix: number, iy: number, iw: number, ih: number, fontScale?: number) => {
   if (!text) return
-  // 根据图片宽度等比缩放字号，确保在不同分辨率下视觉大小一致
-  const refWidth = 570
-  const imgScale = iw / refWidth
-  const size = Math.round(annotationFontSize.value * Math.max(1, imgScale))
-  const pad = Math.round(8 * Math.max(1, imgScale))
+  const refShort = 427
+  const imgScale = fontScale ?? Math.max(1, Math.min(iw, ih) / refShort)
+  const size = Math.round(annotationFontSize.value * imgScale)
+  const pad = Math.round(8 * imgScale)
   ctx.save()
   ctx.font = `bold ${size}px ${annotationFontFamily.value}`
   ctx.fillStyle = annotationColor.value
@@ -304,7 +303,10 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
         throw new Error(`图片 ${i} 加载失败或尺寸为0`)
       }
     }
-    
+
+    const refShort = 427
+    const maxWIdx = images.reduce((best, img, i, arr) => img.width > arr[best].width ? i : best, 0)
+
     if (orientation.value === 'vertical') {
       // 纵向排列：垂直拼接
       const maxWidth = Math.max(...images.map(img => img.width))
@@ -339,7 +341,12 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
       // 填充白色背景
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, maxWidth, totalHeight)
-      
+
+      // 以最宽图片的实际显示尺寸的较短边计算统一缩放系数
+      const fontScale = (uniformSize.value || uniformWidth.value)
+        ? Math.max(1, Math.min(maxWidth, images[maxWIdx].height * maxWidth / images[maxWIdx].width) / refShort)
+        : Math.max(1, Math.min(images[maxWIdx].width, images[maxWIdx].height) / refShort)
+
       // 绘制图片
       let currentY = 0
       for (let i = 0; i < images.length; i++) {
@@ -357,7 +364,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
           
           ctx.drawImage(img, x, y, w, h)
           const itemV = currentImageList[i]
-          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, w, h) }
+          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, w, h, fontScale) }
           currentY += scaledHeight + spacing.value
         } else {
           // 保持原尺寸：居中对齐
@@ -368,7 +375,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
 
           ctx.drawImage(img, x, y)
           const itemV = currentImageList[i]
-          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, img.width, img.height) }
+          if (itemV.annotation) { drawAnnotation(ctx, itemV.annotation, itemV.annotationPos, x, y, img.width, img.height, fontScale) }
           currentY += img.height + spacing.value
         }
         
@@ -416,7 +423,12 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
       // 填充白色背景
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, totalWidth, canvas.height)
-      
+
+      // 以最宽图片的实际显示尺寸的较短边计算统一缩放系数
+      const fontScale = (uniformSize.value || uniformWidth.value)
+        ? Math.max(1, Math.min(images[maxWIdx].width * maxHeight / images[maxWIdx].height, maxHeight) / refShort)
+        : Math.max(1, Math.min(images[maxWIdx].width, images[maxWIdx].height) / refShort)
+
       // 绘制图片
       let currentX = 0
       for (let i = 0; i < images.length; i++) {
@@ -433,7 +445,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
           console.log(`绘制图片 ${i}:`, { x, y, w, h, scale, originalSize: { width: img.width, height: img.height } })
           
           ctx.drawImage(img, x, y, w, h)
-          const itemH1 = currentImageList[i]; if (itemH1.annotation) { drawAnnotation(ctx, itemH1.annotation, itemH1.annotationPos, x, y, w, h) }
+          const itemH1 = currentImageList[i]; if (itemH1.annotation) { drawAnnotation(ctx, itemH1.annotation, itemH1.annotationPos, x, y, w, h, fontScale) }
           currentX += scaledWidth + spacing.value
         } else if (uniformWidth.value) {
           // 统一宽度：按比例缩放图片到统一宽度
@@ -448,7 +460,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
           console.log(`绘制图片 ${i}:`, { x, y, w, h, scale, originalSize: { width: img.width, height: img.height } })
           
           ctx.drawImage(img, x, y, w, h)
-          const itemH2 = currentImageList[i]; if (itemH2.annotation) { drawAnnotation(ctx, itemH2.annotation, itemH2.annotationPos, x, y, w, h) }
+          const itemH2 = currentImageList[i]; if (itemH2.annotation) { drawAnnotation(ctx, itemH2.annotation, itemH2.annotationPos, x, y, w, h, fontScale) }
           currentX += maxWidth + spacing.value
         } else {
           // 保持原尺寸：居中对齐
@@ -459,7 +471,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
           
           ctx.drawImage(img, x, y)
           currentX += img.width + spacing.value
-          const itemH3 = currentImageList[i]; if (itemH3.annotation) { drawAnnotation(ctx, itemH3.annotation, itemH3.annotationPos, x, y, img.width, img.height) }
+          const itemH3 = currentImageList[i]; if (itemH3.annotation) { drawAnnotation(ctx, itemH3.annotation, itemH3.annotationPos, x, y, img.width, img.height, fontScale) }
         }
         
         // 更新进度
@@ -550,11 +562,14 @@ const copyImageToClipboard = async () => {
 }
 
 // 生成对比图（预设处置前/处置后标注）
-const generateComparison = () => {
+const generateComparison = async () => {
   if (imageList.value.length < 2) {
     ElMessage.warning('请至少添加2张图片')
     return
   }
+  // 禁止 watcher 干扰，避免自动生成覆盖对比图结果
+  if (autoStitchTimer) clearTimeout(autoStitchTimer)
+  skipAutoStitch = true
   annotationFontSize.value = 35
   annotationFontFamily.value = 'STHeiti, SimHei'
   annotationColor.value = 'rgb(255, 25, 25)'
@@ -567,7 +582,8 @@ const generateComparison = () => {
     imageList.value[i].annotation = ''
     imageList.value[i].annotationPos = 'center'
   }
-  stitchLongImage(false, '对比图生成完成！')
+  await stitchLongImage(false, '对比图生成完成！')
+  skipAutoStitch = false
 }
 
 // 切换参数后自动重新生成长图（防抖）
@@ -575,7 +591,9 @@ const annotationSnapshot = computed(() =>
   imageList.value.map(i => i.annotation + '|' + i.annotationPos).join(',')
 )
 let autoStitchTimer: ReturnType<typeof setTimeout> | null = null
+let skipAutoStitch = false
 watch([spacing, orientation, uniformSize, uniformWidth, annotationFontSize, annotationFontFamily, annotationColor, annotationSnapshot], () => {
+  if (skipAutoStitch) return
   if (resultImage.value && imageList.value.length >= 2) {
     if (autoStitchTimer) clearTimeout(autoStitchTimer)
     autoStitchTimer = setTimeout(() => stitchLongImage(true), 300)
