@@ -323,7 +323,7 @@ const exportImage = async () => {
         backgroundColor: null
       })
 
-      const url = canvas.toDataURL('image/jpeg', 1)
+      const url = compressImageGeneric(canvas, 5 * 1024 * 1024)
       const link = document.createElement('a')
 
       const now = new Date()

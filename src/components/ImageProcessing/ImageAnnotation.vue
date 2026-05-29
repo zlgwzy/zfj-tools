@@ -76,60 +76,112 @@ const handlePaste = async (event: ClipboardEvent) => {
 onMounted(() => document.addEventListener('paste', handlePaste))
 onUnmounted(() => document.removeEventListener('paste', handlePaste))
 
+// 绘制标注到 canvas 并返回（共用逻辑）
+const drawAnnotationOnCanvas = () => {
+  const w = img.value!.naturalWidth
+  const h = img.value!.naturalHeight
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(img.value!, 0, 0, w, h)
+
+  if (annotation.value) {
+    const pad = 12
+    const refShort = 427
+    const imgScale = Math.max(1, Math.min(w, h) / refShort)
+    const size = Math.round(fontSize.value * imgScale)
+    ctx.save()
+    ctx.font = `bold ${size}px ${fontFamily.value}`
+    ctx.fillStyle = textColor.value
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'
+    ctx.shadowBlur = 3
+    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetY = 1
+    ctx.textBaseline = 'top'
+    ctx.textAlign = 'left'
+    let tx = 0, ty = 0
+    switch (annotationPos.value) {
+      case 'top-left':       tx = pad; ty = pad; break
+      case 'top-center':     tx = w / 2; ty = pad; ctx.textAlign = 'center'; break
+      case 'top-right':      tx = w - pad; ty = pad; ctx.textAlign = 'right'; break
+      case 'center':         tx = w / 2; ty = h / 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; break
+      case 'bottom-left':    tx = pad; ty = h - pad; ctx.textBaseline = 'bottom'; break
+      case 'bottom-center':  tx = w / 2; ty = h - pad; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; break
+      case 'bottom-right':   tx = w - pad; ty = h - pad; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; break
+    }
+    ctx.fillText(annotation.value, tx, ty)
+    ctx.restore()
+  }
+  return canvas
+}
+
+// 压缩到 5MB 以内（先限尺寸，再调 JPEG 质量）
+const compressToSize = (canvas: HTMLCanvasElement, maxBytes = 5 * 1024 * 1024): string => {
+  let cvs = canvas
+  const maxDim = 3000
+  if (cvs.width > maxDim || cvs.height > maxDim) {
+    const s = maxDim / Math.max(cvs.width, cvs.height)
+    const tmp = document.createElement('canvas')
+    tmp.width = Math.floor(cvs.width * s)
+    tmp.height = Math.floor(cvs.height * s)
+    const tctx = tmp.getContext('2d')!
+    tctx.imageSmoothingEnabled = true
+    tctx.imageSmoothingQuality = 'high'
+    tctx.drawImage(cvs, 0, 0, tmp.width, tmp.height)
+    cvs = tmp
+  }
+  let quality = 0.92
+  let url = cvs.toDataURL('image/jpeg', quality)
+  while (url.length > maxBytes && quality > 0.2) {
+    quality -= 0.05
+    url = cvs.toDataURL('image/jpeg', quality)
+  }
+  return url
+}
+
 const exportImage = async () => {
   if (!imageUrl.value || !img.value) return
   isExporting.value = true
   await new Promise(r => setTimeout(r, 100))
-
   try {
-    const w = img.value.naturalWidth
-    const h = img.value.naturalHeight
-    const canvas = document.createElement('canvas')
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(img.value, 0, 0, w, h)
-
-    if (annotation.value) {
-      const pad = 12
-      const refShort = 427
-      const imgScale = Math.max(1, Math.min(w, h) / refShort)
-      const size = Math.round(fontSize.value * imgScale)
-      ctx.save()
-      ctx.font = `bold ${size}px ${fontFamily.value}`
-      ctx.fillStyle = textColor.value
-      ctx.shadowColor = 'rgba(0,0,0,0.5)'
-      ctx.shadowBlur = 3
-      ctx.shadowOffsetX = 1
-      ctx.shadowOffsetY = 1
-      ctx.textBaseline = 'top'
-      ctx.textAlign = 'left'
-
-      let tx = 0, ty = 0
-      switch (annotationPos.value) {
-        case 'top-left':       tx = pad; ty = pad; break
-        case 'top-center':     tx = w / 2; ty = pad; ctx.textAlign = 'center'; break
-        case 'top-right':      tx = w - pad; ty = pad; ctx.textAlign = 'right'; break
-        case 'center':         tx = w / 2; ty = h / 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; break
-        case 'bottom-left':    tx = pad; ty = h - pad; ctx.textBaseline = 'bottom'; break
-        case 'bottom-center':  tx = w / 2; ty = h - pad; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; break
-        case 'bottom-right':   tx = w - pad; ty = h - pad; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; break
-      }
-      ctx.fillText(annotation.value, tx, ty)
-      ctx.restore()
-    }
-
-    const url = canvas.toDataURL('image/png')
+    const canvas = drawAnnotationOnCanvas()
+    const url = compressToSize(canvas)
     const link = document.createElement('a')
     const ts = new Date()
     const timeStr = `${ts.getFullYear()}${String(ts.getMonth()+1).padStart(2,'0')}${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}${String(ts.getMinutes()).padStart(2,'0')}${String(ts.getSeconds()).padStart(2,'0')}`
-    link.download = `标注_${timeStr}.png`
+    link.download = `标注_${timeStr}.jpg`
     link.href = url
     link.click()
   } catch {
     ElMessage.error('导出失败，请重试')
   } finally {
     isExporting.value = false
+  }
+}
+
+const copyToClipboard = async () => {
+  if (!imageUrl.value || !img.value) return
+  try {
+    let canvas = drawAnnotationOnCanvas()
+    // 等比缩放到最长边 2000px，大幅提升速度
+    const maxClip = 2000
+    if (canvas.width > maxClip || canvas.height > maxClip) {
+      const s = maxClip / Math.max(canvas.width, canvas.height)
+      const tmp = document.createElement('canvas')
+      tmp.width = Math.floor(canvas.width * s)
+      tmp.height = Math.floor(canvas.height * s)
+      const tctx = tmp.getContext('2d')!
+      tctx.imageSmoothingEnabled = true
+      tctx.imageSmoothingQuality = 'high'
+      tctx.drawImage(canvas, 0, 0, tmp.width, tmp.height)
+      canvas = tmp
+    }
+    const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败')
   }
 }
 
@@ -195,6 +247,9 @@ const clearAll = () => {
             <div class="action-row">
               <el-button type="primary" @click="exportImage" :loading="isExporting" :disabled="!imageUrl">
                 导出图片
+              </el-button>
+              <el-button @click="copyToClipboard" :disabled="!imageUrl">
+                复制到剪贴板
               </el-button>
               <el-button type="danger" @click="clearAll">清空</el-button>
             </div>
