@@ -1099,11 +1099,10 @@ onUnmounted(() => {
 
 /* 横向排列时的样式 */
 .result-img[data-orientation="horizontal"] {
-  width: auto;
+  max-width: 100%;
   max-height: 60vh;
-  min-width: 100%;
-  /* 确保横向图片不被压缩 */
-  flex-shrink: 0;
+  width: auto;
+  height: auto;
 }
 
 
