@@ -625,21 +625,6 @@ onUnmounted(() => {
       <template #header>
         <div class="card-header">
           <span>工作照拼接 - 长图</span>
-          <div class="header-actions">
-            <el-button type="primary" :disabled="imageList.length < 2" @click="() => stitchLongImage()" :loading="isProcessing">
-              {{ resultImage ? '重新生成' : '生成长图' }}
-            </el-button>
-            <el-button type="success" :disabled="imageList.length < 2" @click="generateComparison">
-              生成对比图
-            </el-button>
-            <div v-if="isProcessing" class="progress-info">
-              <el-progress :percentage="processingProgress" :show-text="true" />
-              <span class="progress-text">正在处理图片...</span>
-            </div>
-            <el-button type="danger" :disabled="imageList.length === 0" @click="clearAll">
-              清空
-            </el-button>
-          </div>
         </div>
       </template>
 
@@ -680,10 +665,56 @@ onUnmounted(() => {
             </div>
             <div class="setting-item">
               <span class="label">操作提示：</span>
-              <span class="value" style="color: #409eff;">调整参数后请点击"重新生成"按钮</span>
+              <span class="value" style="color: #409eff;">调整参数后将自动生成图片，对比图为处置前后对比</span>
+            </div>
+            <div class="upload-compact-area" @click="fileInput?.click()" :class="{ 'uploading': isUploading }">
+              <el-icon><Plus /></el-icon>
+              <span v-if="!isUploading">点击上传多张图片</span>
+              <span v-else>正在处理图片...</span>
+              <span class="paste-hint">或 Ctrl+V 粘贴</span>
+              <input ref="fileInput" type="file" accept="image/*" multiple style="display: none" @change="handleFileSelect" />
+            </div>
+            <div v-if="isUploading" class="upload-progress">
+              <el-progress :percentage="uploadProgress" :show-text="true" />
+              <span class="progress-text">正在压缩和加载图片...</span>
+            </div>
+
+            <div class="annotation-controls">
+              <div class="annotation-header">图片标注</div>
+              <div class="annotation-style-controls">
+                <div class="ann-style-item">
+                  <span class="ann-style-label">字号：</span>
+                  <el-slider v-model="annotationFontSize" :min="20" :max="50" :step="1" class="compact-slider" />
+                </div>
+                <div class="ann-style-item">
+                  <span class="ann-style-label">字体：</span>
+                  <el-select v-model="annotationFontFamily" size="small" class="font-select">
+                    <el-option v-for="item in fontOptions" :key="item.value" :label="item.label" :value="item.value" />
+                  </el-select>
+                </div>
+                <div class="ann-style-item">
+                  <span class="ann-style-label">颜色：</span>
+                  <el-color-picker v-model="annotationColor" show-alpha class="ann-color-picker" />
+                </div>
+              </div>
+              <div class="action-row">
+                <el-button type="primary" :disabled="imageList.length < 2" @click="() => stitchLongImage()" :loading="isProcessing">
+                  {{ resultImage ? '重新生成' : '生成长图' }}
+                </el-button>
+                <el-button type="success" :disabled="imageList.length < 2" @click="generateComparison">
+                  生成对比图
+                </el-button>
+                <el-button type="danger" :disabled="imageList.length === 0" @click="clearAll">
+                  清空
+                </el-button>
+              </div>
+              <div v-if="isProcessing" class="progress-info">
+                <el-progress :percentage="processingProgress" :show-text="true" />
+                <span class="progress-text">正在处理图片...</span>
+              </div>
             </div>
           </div>
-          
+
           <div class="settings-right">
             <h4>尺寸模式说明</h4>
             <div class="mode-item">
@@ -713,42 +744,6 @@ onUnmounted(() => {
                 <p>• 适合：需要保持图片原始清晰度的场景</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 上传区域 -->
-      <div class="upload-section">
-        <div class="upload-area" @click="fileInput?.click()" :class="{ 'uploading': isUploading }">
-          <el-icon><Plus /></el-icon>
-          <span v-if="!isUploading">点击上传多张图片</span>
-          <span v-else>正在处理图片...</span>
-          <span class="paste-hint">或 Ctrl+V 粘贴</span>
-        </div>
-        <div v-if="isUploading" class="upload-progress">
-          <el-progress :percentage="uploadProgress" :show-text="true" />
-          <span class="progress-text">正在压缩和加载图片...</span>
-        </div>
-        <input ref="fileInput" type="file" accept="image/*" multiple style="display: none" @change="handleFileSelect" />
-      </div>
-
-      <!-- 标注设置 -->
-      <div v-if="imageList.length > 0" class="annotation-controls">
-        <div class="annotation-header">图片标注</div>
-        <div class="annotation-style-controls">
-          <div class="ann-style-item">
-            <span class="ann-style-label">字号：</span>
-            <el-slider v-model="annotationFontSize" :min="20" :max="35" :step="1" class="compact-slider" />
-          </div>
-          <div class="ann-style-item">
-            <span class="ann-style-label">字体：</span>
-            <el-select v-model="annotationFontFamily" size="small" class="font-select">
-              <el-option v-for="item in fontOptions" :key="item.value" :label="item.label" :value="item.value" />
-            </el-select>
-          </div>
-          <div class="ann-style-item">
-            <span class="ann-style-label">颜色：</span>
-            <el-color-picker v-model="annotationColor" show-alpha class="ann-color-picker" />
           </div>
         </div>
       </div>
@@ -823,14 +818,15 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-.header-actions {
+.action-row {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
 .progress-info {
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -927,34 +923,47 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
-.upload-section {
-  margin: 20px 0;
-}
-
-.upload-area {
+.upload-compact-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
-  padding: 40px;
-  text-align: center;
+  padding: 18px 20px;
   cursor: pointer;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
   background: #fafafa;
+  color: #606266;
+  font-size: 14px;
+  margin-bottom: 4px;
 }
 
-.upload-area:hover {
+.upload-compact-area:hover {
   border-color: #409eff;
   background: #f0f9ff;
+  color: #409eff;
 }
 
-.upload-area.uploading {
+.upload-compact-area.uploading {
   border-color: #67c23a;
   background: #f0f9ff;
   cursor: not-allowed;
 }
 
+.upload-compact-area .el-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.upload-compact-area .paste-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+}
+
 .upload-progress {
-  margin-top: 15px;
-  padding: 15px;
+  margin-top: 10px;
+  padding: 10px;
   background: #f5f7fa;
   border-radius: 8px;
   text-align: center;
@@ -962,32 +971,14 @@ onUnmounted(() => {
 
 .upload-progress .progress-text {
   display: block;
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 12px;
   color: #606266;
-}
-
-.upload-area .el-icon {
-  font-size: 48px;
-  color: #909399;
-  margin-bottom: 10px;
-  display: block;
-}
-
-.upload-area span {
-  display: block;
-  color: #606266;
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-
-.paste-hint {
-  font-size: 12px;
-  color: #c0c4cc;
 }
 
 .image-list-section {
   margin: 20px 0;
+  max-width: 50%;
 }
 
 .section-title {

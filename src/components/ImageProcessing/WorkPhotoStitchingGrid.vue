@@ -504,7 +504,7 @@ const gridStyle = computed(() => {
               <el-slider
                 v-model="annotationFontSize"
                 :min="20"
-                :max="35"
+                :max="50"
                 :step="1"
                 class="compact-slider"
               />
