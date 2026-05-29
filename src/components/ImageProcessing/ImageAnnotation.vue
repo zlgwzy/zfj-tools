@@ -245,11 +245,11 @@ const clearAll = () => {
             </div>
 
             <div class="action-row">
+              <el-button type="success" @click="copyToClipboard" :disabled="!imageUrl">
+                复制到剪贴板
+              </el-button>
               <el-button type="primary" @click="exportImage" :loading="isExporting" :disabled="!imageUrl">
                 导出图片
-              </el-button>
-              <el-button @click="copyToClipboard" :disabled="!imageUrl">
-                复制到剪贴板
               </el-button>
               <el-button type="danger" @click="clearAll">清空</el-button>
             </div>
@@ -385,8 +385,16 @@ const clearAll = () => {
 
 .action-row {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
   margin-top: 16px;
+}
+
+.action-row :deep(.el-button) {
+  width: 100%;
+  max-width: 240px;
+  margin-left: 0 !important;
 }
 
 .preview-panel {
