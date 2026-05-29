@@ -194,23 +194,39 @@ const removeImage = (id: string) => {
   const index = imageList.value.findIndex(img => img.id === id)
   if (index > -1) {
     imageList.value.splice(index, 1)
+    if (draggedIdx.value === index) draggedIdx.value = null
   }
 }
 
-// 上移图片
-const moveUp = (index: number) => {
-  if (index > 0) {
-    const item = imageList.value.splice(index, 1)[0]
-    imageList.value.splice(index - 1, 0, item)
+// 拖拽排序
+const draggedIdx = ref<null | number>(null)
+
+const onDragStart = (index: number) => {
+  if (!imageList.value[index].url) return
+  draggedIdx.value = index
+}
+
+const onDragEnd = () => {
+  draggedIdx.value = null
+}
+
+const onDragOver = (index: number, e: DragEvent) => {
+  e.preventDefault()
+  if (draggedIdx.value !== null && draggedIdx.value !== index) {
+    e.dataTransfer!.dropEffect = 'move'
   }
 }
 
-// 下移图片
-const moveDown = (index: number) => {
-  if (index < imageList.value.length - 1) {
-    const item = imageList.value.splice(index, 1)[0]
-    imageList.value.splice(index + 1, 0, item)
-  }
+const onDrop = (targetIndex: number, e: DragEvent) => {
+  e.preventDefault()
+  if (draggedIdx.value === null || draggedIdx.value === targetIndex) return
+  const src = draggedIdx.value
+  const list = [...imageList.value]
+  const tmp = { ...list[src] }
+  list[src] = { ...list[targetIndex] }
+  list[targetIndex] = tmp
+  imageList.value = list
+  draggedIdx.value = null
 }
 
 // 在 Canvas 上绘制标注文字（fontScale 为外部传入的统一缩放系数，以图一为准）
@@ -489,12 +505,13 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
 
     console.log('Canvas尺寸:', canvas.width, 'x', canvas.height)
 
-    // 输出图片压缩：超过最长边 2000px 则等比缩放，并使用 JPEG 格式
+    // 输出图片压缩：以单张图片最大尺寸为基准，避免多图叠加后过度压缩
     try {
       const maxOutput = 2000
       let outputCanvas = canvas
-      if (canvas.width > maxOutput || canvas.height > maxOutput) {
-        const s = Math.min(1, maxOutput / Math.max(canvas.width, canvas.height))
+      const maxImgDim = Math.max(...images.map(img => Math.max(img.width, img.height)))
+      if (maxImgDim > maxOutput) {
+        const s = maxOutput / maxImgDim
         const tw = Math.floor(canvas.width * s)
         const th = Math.floor(canvas.height * s)
         const tmp = document.createElement('canvas')
@@ -590,9 +607,12 @@ const generateComparison = async () => {
 const annotationSnapshot = computed(() =>
   imageList.value.map(i => i.annotation + '|' + i.annotationPos).join(',')
 )
+const imageOrderSnapshot = computed(() =>
+  imageList.value.map(i => i.id).join(',')
+)
 let autoStitchTimer: ReturnType<typeof setTimeout> | null = null
 let skipAutoStitch = false
-watch([spacing, orientation, uniformSize, uniformWidth, annotationFontSize, annotationFontFamily, annotationColor, annotationSnapshot], () => {
+watch([spacing, orientation, uniformSize, uniformWidth, annotationFontSize, annotationFontFamily, annotationColor, annotationSnapshot, imageOrderSnapshot], () => {
   if (skipAutoStitch) return
   if (resultImage.value && imageList.value.length >= 2) {
     if (autoStitchTimer) clearTimeout(autoStitchTimer)
@@ -750,23 +770,31 @@ onUnmounted(() => {
 
       <!-- 图片列表 -->
       <div v-if="imageList.length > 0" class="image-list-section">
-        <div class="section-title">图片列表（可上下移动调整图片排序）</div>
+        <div class="section-title">图片列表（拖拽可调整排序）</div>
         <div class="image-list">
-          <div v-for="(item, index) in imageList" :key="item.id" class="image-item">
-            <div class="image-preview">
-              <img :src="item.url" :alt="`图片 ${index + 1}`" />
+          <div
+            v-for="(item, index) in imageList"
+            :key="item.id"
+            class="image-item"
+            :class="{ 'is-dragging': draggedIdx === index, 'can-drop': draggedIdx !== null && draggedIdx !== index }"
+            draggable="true"
+            @dragstart="onDragStart(index)"
+            @dragend="onDragEnd"
+            @dragover="onDragOver(index, $event)"
+            @drop="onDrop(index, $event)"
+          >
+            <div class="image-preview" draggable="false">
+              <img :src="item.url" :alt="`图片 ${index + 1}`" draggable="false" />
             </div>
             <div class="image-info">
               <div class="image-name">{{ item.file.name }}</div>
-              <div class="image-annotation-row">
+              <div class="image-annotation-row" draggable="false">
                 <el-select v-model="item.annotationPos" size="small" class="annotation-pos-select">
                   <el-option v-for="opt in positionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
                 </el-select>
                 <el-input v-model="item.annotation" size="small" placeholder="标注文字" class="annotation-input" maxlength="20" />
               </div>
-              <div class="image-actions">
-                <el-button size="small" :disabled="index === 0" @click="moveUp(index)">上移</el-button>
-                <el-button size="small" :disabled="index === imageList.length - 1" @click="moveDown(index)">下移</el-button>
+              <div class="image-actions" draggable="false">
                 <el-button size="small" type="danger" @click="removeImage(item.id)">删除</el-button>
               </div>
             </div>
@@ -1002,10 +1030,24 @@ onUnmounted(() => {
   border-radius: 8px;
   background: #fff;
   transition: box-shadow 0.3s;
+  cursor: grab;
+  user-select: none;
 }
 
 .image-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-item.is-dragging {
+  opacity: 0.5;
+  border-style: solid;
+  border-color: #409eff;
+}
+
+.image-item.can-drop {
+  border-style: solid;
+  border-color: #67c23a;
+  background-color: #f0f9eb;
 }
 
 .image-preview {
