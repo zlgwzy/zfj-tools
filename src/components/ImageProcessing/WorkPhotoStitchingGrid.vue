@@ -182,6 +182,7 @@ onBeforeUnmount(() => {
 })
 
 const isExporting = ref(false)
+const showAnnotation = ref(false)
 
 // 通用的图片压缩函数
 const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number): string => {
@@ -514,7 +515,11 @@ const gridStyle = computed(() => {
           </div>
         </div>
 
-        <div class="annotation-controls">
+        <div class="annotation-toggle">
+          <span class="annotation-toggle-label">图片标注：</span>
+          <el-switch v-model="showAnnotation" active-text="开启" inactive-text="关闭" />
+        </div>
+        <div v-if="showAnnotation" class="annotation-controls">
           <div class="annotation-header">图片标注</div>
           <div class="annotation-style-controls">
             <div class="ann-style-item">
@@ -1180,6 +1185,18 @@ const gridStyle = computed(() => {
   max-height: 400px;
   pointer-events: none;
   display: block;
+}
+
+.annotation-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.annotation-toggle-label {
+  font-size: 14px;
+  color: #606266;
 }
 
 .annotation-controls {
