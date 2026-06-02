@@ -807,7 +807,7 @@ onUnmounted(() => {
         <div class="result-header">
           <span>拼接结果</span>
           <div class="result-actions">
-            <el-button type="primary" @click="copyImageToClipboard">复制到剪贴板</el-button>
+            <el-button type="success" @click="copyImageToClipboard">复制到剪贴板</el-button>
             <el-button type="primary" @click="downloadResult">下载长图</el-button>
           </div>
         </div>

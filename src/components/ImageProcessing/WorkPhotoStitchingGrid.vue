@@ -340,6 +340,24 @@ const exportImage = async () => {
   }
 }
 
+// 复制到剪贴板
+const copyToClipboard = async () => {
+  const element = document.getElementById('photo-container')
+  if (!element) return
+  try {
+    const canvas = await html2canvas(element, {
+      useCORS: true,
+      scale: 2,
+      backgroundColor: null
+    })
+    const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败')
+  }
+}
+
 // 拖拽状态
 const draggedItem = ref<null | number>(null)
 
@@ -562,11 +580,14 @@ const gridStyle = computed(() => {
         </div>
 
         <div class="action-buttons">
-          <el-button type="danger" size="small" @click="store.resetState()" class="reset-button">
-            清除内容
+          <el-button type="success" size="small" @click="copyToClipboard">
+            复制到剪贴板
           </el-button>
           <el-button type="primary" size="small" @click="exportImage" class="export-button">
             导出图片
+          </el-button>
+          <el-button type="danger" size="small" @click="store.resetState()" class="reset-button">
+            清除内容
           </el-button>
         </div>
       </div>
