@@ -4,6 +4,7 @@ import WorkPhotoStitching from './ImageProcessing/WorkPhotoStitchingGrid.vue'
 import WorkPhotoStitching6 from './ImageProcessing/WorkPhotoStitchingGrid.vue'
 import WorkPhotoStitchingLong from './ImageProcessing/WorkPhotoStitching_Long.vue'
 import ImageAnnotation from './ImageProcessing/ImageAnnotation.vue'
+import ImageCropper from './ImageProcessing/ImageCropper.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
 
@@ -59,6 +60,9 @@ onMounted(() => {
             <el-menu-item index="2-5">
               <span>图片标注</span>
             </el-menu-item>
+            <el-menu-item index="2-6">
+              <span>图片裁剪（4:3）</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="3">
             <template #title>
@@ -101,6 +105,7 @@ onMounted(() => {
           <WorkPhotoStitching6 v-if="activeIndex === '2-3'" :grid-type="6" />
           <WorkPhotoStitchingLong v-if="activeIndex === '2-4'" />
           <ImageAnnotation v-if="activeIndex === '2-5'" />
+          <ImageCropper v-if="activeIndex === '2-6'" />
 
           <!-- 绵竹地图 -->
           <MianzhuMap v-if="activeIndex === '5'" />
