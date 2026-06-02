@@ -190,7 +190,19 @@ const exportCrop = async () => {
 const copyToClipboard = async () => {
   if (!imageUrl.value || !imgEl.value) return
   try {
-    const canvas = getCroppedCanvas()
+    let canvas = getCroppedCanvas()
+    const maxClip = 2000
+    if (canvas.width > maxClip || canvas.height > maxClip) {
+      const s = maxClip / Math.max(canvas.width, canvas.height)
+      const tmp = document.createElement('canvas')
+      tmp.width = Math.floor(canvas.width * s)
+      tmp.height = Math.floor(canvas.height * s)
+      const tctx = tmp.getContext('2d')!
+      tctx.imageSmoothingEnabled = true
+      tctx.imageSmoothingQuality = 'high'
+      tctx.drawImage(canvas, 0, 0, tmp.width, tmp.height)
+      canvas = tmp
+    }
     const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
     ElMessage.success('已复制到剪贴板')
