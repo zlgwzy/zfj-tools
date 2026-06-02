@@ -580,13 +580,13 @@ const gridStyle = computed(() => {
         </div>
 
         <div class="action-buttons">
-          <el-button type="success" size="small" @click="copyToClipboard">
+          <el-button type="success" @click="copyToClipboard">
             复制到剪贴板
           </el-button>
-          <el-button type="primary" size="small" @click="exportImage" class="export-button">
+          <el-button type="primary" @click="exportImage">
             导出图片
           </el-button>
-          <el-button type="danger" size="small" @click="store.resetState()" class="reset-button">
+          <el-button type="danger" @click="store.resetState()">
             清除内容
           </el-button>
         </div>
@@ -1331,13 +1331,5 @@ const gridStyle = computed(() => {
   font-size: 16px;
   padding: 20px 0;
   min-height: 80px;
-}
-
-.reset-button {
-  margin-left: 0;
-}
-
-.export-button {
-  margin-left: 0;
 }
 </style>
