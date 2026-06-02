@@ -26,7 +26,6 @@ const scale = computed(() => {
 })
 
 // 判断是否已是 4:3
-const isAlready4_3 = computed(() => natW.value > 0 && Math.abs(natW.value / natH.value - 4 / 3) < 0.01)
 
 const handleUpload = (e: Event) => {
   const files = (e.target as HTMLInputElement).files
@@ -244,8 +243,7 @@ const clearAll = () => {
             </div>
             <div class="info-row">
               <span class="info-label">裁剪尺寸</span>
-              <span class="info-value" v-if="!isAlready4_3">{{ cropW }} × {{ cropH }}（4:3）</span>
-              <span class="info-value" v-else>无需裁剪</span>
+              <span class="info-value">{{ cropW }} × {{ cropH }}（4:3）</span>
             </div>
           </div>
 
@@ -269,7 +267,7 @@ const clearAll = () => {
               @load="onImgLoad"
               draggable="false"
             />
-            <template v-if="natW > 0 && !isAlready4_3">
+            <template v-if="natW > 0">
               <div class="crop-overlay">
                 <div class="mask" :style="{ top: 0, left: 0, right: 0, height: (cropY / scale) + 'px' }" />
                 <div class="mask" :style="{ bottom: 0, left: 0, right: 0, height: ((natH - cropY - cropH) / scale) + 'px' }" />
@@ -296,7 +294,6 @@ const clearAll = () => {
                 </div>
               </div>
             </template>
-            <div v-if="isAlready4_3" class="no-crop-msg">图片已是 4:3 比例，无需裁剪</div>
           </div>
           <div v-else class="preview-placeholder">
             <el-icon><Picture /></el-icon>
@@ -435,19 +432,6 @@ const clearAll = () => {
   max-width: 100%;
   max-height: 70vh;
   pointer-events: none;
-}
-
-.no-crop-msg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18px;
-  color: #67c23a;
-  font-weight: 600;
-  background: rgba(255,255,255,0.85);
-  padding: 16px 24px;
-  border-radius: 8px;
 }
 
 .crop-overlay {
