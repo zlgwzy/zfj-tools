@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const imageUrl = ref('')
@@ -61,6 +61,8 @@ const handlePaste = async (event: ClipboardEvent) => {
     if (item.type.startsWith('image/')) {
       const blob = item.getAsFile()
       if (!blob) continue
+      imageUrl.value = ''
+      img.value = null
       const reader = new FileReader()
       reader.onload = () => {
         imageUrl.value = reader.result as string
@@ -87,55 +89,67 @@ const drawAnnotationOnCanvas = () => {
   ctx.drawImage(img.value!, 0, 0, w, h)
 
   if (annotation.value) {
-    const pad = 12
-    const refShort = 427
-    const imgScale = Math.max(1, Math.min(w, h) / refShort)
-    const size = Math.round(fontSize.value * imgScale)
+    // 以 img 元素当前显示宽度为基准缩放字号，保证导出与预览视觉一致
+    const displayW = img.value!.width
+    const scale = w / displayW
+    const pad = Math.round(8 * scale)       // 元素定位偏移
+    const pt = Math.round(4 * scale)         // padding-top
+    const pl = Math.round(8 * scale)         // padding-left/right
+    const size = Math.round(fontSize.value * scale)
     ctx.save()
     ctx.font = `bold ${size}px ${fontFamily.value}`
     ctx.fillStyle = textColor.value
     ctx.shadowColor = 'rgba(0,0,0,0.5)'
     ctx.shadowBlur = 3
-    ctx.shadowOffsetX = 1
+    ctx.shadowOffsetX = 0
     ctx.shadowOffsetY = 1
     ctx.textBaseline = 'top'
     ctx.textAlign = 'left'
     let tx = 0, ty = 0
     switch (annotationPos.value) {
-      case 'top-left':       tx = pad; ty = pad; break
-      case 'top-center':     tx = w / 2; ty = pad; ctx.textAlign = 'center'; break
-      case 'top-right':      tx = w - pad; ty = pad; ctx.textAlign = 'right'; break
+      case 'top-left':       tx = pad + pl; ty = pad + pt; break
+      case 'top-center':     tx = w / 2; ty = pad + pt; ctx.textAlign = 'center'; break
+      case 'top-right':      tx = w - (pad + pl); ty = pad + pt; ctx.textAlign = 'right'; break
       case 'center':         tx = w / 2; ty = h / 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; break
-      case 'bottom-left':    tx = pad; ty = h - pad; ctx.textBaseline = 'bottom'; break
-      case 'bottom-center':  tx = w / 2; ty = h - pad; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; break
-      case 'bottom-right':   tx = w - pad; ty = h - pad; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; break
+      case 'bottom-left':    tx = pad + pl; ty = h - (pad + pt); ctx.textBaseline = 'bottom'; break
+      case 'bottom-center':  tx = w / 2; ty = h - (pad + pt); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; break
+      case 'bottom-right':   tx = w - (pad + pl); ty = h - (pad + pt); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; break
     }
-    ctx.fillText(annotation.value, tx, ty)
+    // 自动换行：手动换行 + 超出可用宽度自动切断
+    const maxW = w - (pad + pl) * 2
+    const lineH = Math.round(size * 1.4)
+    let drawY = ty
+    for (const line of annotation.value.split('\n')) {
+      const m = ctx.measureText(line)
+      if (m.width <= maxW) {
+        ctx.fillText(line, tx, drawY)
+        drawY += lineH
+      } else {
+        let buf = ''
+        for (const ch of line) {
+          if (ctx.measureText(buf + ch).width > maxW) {
+            ctx.fillText(buf, tx, drawY)
+            drawY += lineH
+            buf = ch
+          } else {
+            buf += ch
+          }
+        }
+        if (buf) { ctx.fillText(buf, tx, drawY); drawY += lineH }
+      }
+    }
     ctx.restore()
   }
   return canvas
 }
 
-// 压缩到 5MB 以内（先限尺寸，再调 JPEG 质量）
+// 压缩到 5MB 以内（仅调 JPEG 质量，不改变像素尺寸）
 const compressToSize = (canvas: HTMLCanvasElement, maxBytes = 5 * 1024 * 1024): string => {
-  let cvs = canvas
-  const maxDim = 3000
-  if (cvs.width > maxDim || cvs.height > maxDim) {
-    const s = maxDim / Math.max(cvs.width, cvs.height)
-    const tmp = document.createElement('canvas')
-    tmp.width = Math.floor(cvs.width * s)
-    tmp.height = Math.floor(cvs.height * s)
-    const tctx = tmp.getContext('2d')!
-    tctx.imageSmoothingEnabled = true
-    tctx.imageSmoothingQuality = 'high'
-    tctx.drawImage(cvs, 0, 0, tmp.width, tmp.height)
-    cvs = tmp
-  }
   let quality = 0.92
-  let url = cvs.toDataURL('image/jpeg', quality)
+  let url = canvas.toDataURL('image/jpeg', quality)
   while (url.length > maxBytes && quality > 0.2) {
     quality -= 0.05
-    url = cvs.toDataURL('image/jpeg', quality)
+    url = canvas.toDataURL('image/jpeg', quality)
   }
   return url
 }
@@ -150,7 +164,8 @@ const exportImage = async () => {
     const link = document.createElement('a')
     const ts = new Date()
     const timeStr = `${ts.getFullYear()}${String(ts.getMonth()+1).padStart(2,'0')}${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}${String(ts.getMinutes()).padStart(2,'0')}${String(ts.getSeconds()).padStart(2,'0')}`
-    link.download = `标注_${timeStr}.jpg`
+    const name = annotation.value ? annotation.value.replace(/\n/g, '') : '标注'
+    link.download = `${name}_${timeStr}.jpg`
     link.href = url
     link.click()
   } catch {
@@ -198,7 +213,7 @@ const clearAll = () => {
     <el-card class="main-card">
       <template #header>
         <div class="card-header">
-          <span>图片标注</span>
+          <span>图片标注（200字以内）</span>
         </div>
       </template>
 
@@ -219,8 +234,15 @@ const clearAll = () => {
           />
 
           <div v-if="imageUrl" class="annotation-section">
-            <div class="section-title">标注文字</div>
-            <el-input v-model="annotation" placeholder="输入标注文字" maxlength="30" />
+            <div class="section-title">标注文字（200字以内）</div>
+            <el-input
+              v-model="annotation"
+              type="textarea"
+              :autosize="{ minRows: 2, maxRows: 6 }"
+              placeholder="输入标注文字"
+              maxlength="200"
+              show-word-limit
+            />
 
             <div class="section-title" style="margin-top: 12px">标注位置</div>
             <el-select v-model="annotationPos" style="width: 100%">
@@ -425,16 +447,18 @@ const clearAll = () => {
   font-weight: bold;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   max-width: calc(100% - 16px);
-  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  text-align: left;
 }
 
 .annotation-overlay.pos-top-left { top: 8px; left: 8px; }
-.annotation-overlay.pos-top-center { top: 8px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
-.annotation-overlay.pos-top-right { top: 8px; right: 8px; }
-.annotation-overlay.pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; }
+.annotation-overlay.pos-top-center { top: 8px; left: 50%; transform: translateX(-50%); text-align: center; }
+.annotation-overlay.pos-top-right { top: 8px; right: 8px; text-align: right; }
+.annotation-overlay.pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
 .annotation-overlay.pos-bottom-left { bottom: 8px; left: 8px; }
-.annotation-overlay.pos-bottom-center { bottom: 8px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
-.annotation-overlay.pos-bottom-right { bottom: 8px; right: 8px; }
+.annotation-overlay.pos-bottom-center { bottom: 8px; left: 50%; transform: translateX(-50%); text-align: center; }
+.annotation-overlay.pos-bottom-right { bottom: 8px; right: 8px; text-align: right; }
 
 .preview-placeholder {
   display: flex;

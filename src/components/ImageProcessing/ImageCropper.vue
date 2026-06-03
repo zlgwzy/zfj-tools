@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
 const imageUrl = ref('')
+const fileName = ref('')
 const imgEl = ref<HTMLImageElement | null>(null)
 
 // 裁剪区域位置（基于图片实际像素坐标）
@@ -35,6 +36,7 @@ const handleUpload = (e: Event) => {
     ElMessage.warning('请上传图片格式文件')
     return
   }
+  fileName.value = file.name
   const reader = new FileReader()
   reader.onload = () => {
     imageUrl.value = reader.result as string
@@ -210,8 +212,31 @@ const copyToClipboard = async () => {
   }
 }
 
+const handlePaste = async (event: ClipboardEvent) => {
+  const items = event.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const blob = item.getAsFile()
+      if (!blob) continue
+      clearAll()
+      fileName.value = blob.name || '剪贴板图片'
+      const reader = new FileReader()
+      reader.onload = () => {
+        imageUrl.value = reader.result as string
+      }
+      reader.readAsDataURL(blob)
+      break
+    }
+  }
+}
+
+onMounted(() => document.addEventListener('paste', handlePaste))
+onUnmounted(() => document.removeEventListener('paste', handlePaste))
+
 const clearAll = () => {
   imageUrl.value = ''
+  fileName.value = ''
   imgEl.value = null
   natW.value = 0
   natH.value = 0
@@ -232,18 +257,22 @@ const clearAll = () => {
           <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
             <el-icon><Plus /></el-icon>
             <span>选择图片</span>
-            <span class="hint">支持 JPG / PNG</span>
+            <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
           <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleUpload" />
 
           <div class="info-section">
             <div class="info-row">
               <span class="info-label">原图尺寸</span>
-              <span class="info-value">{{ natW }} × {{ natH }}</span>
+              <span class="info-value">{{ natW || 0 }} × {{ natH || 0 }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">裁剪尺寸</span>
-              <span class="info-value">{{ cropW }} × {{ cropH }}（4:3）</span>
+              <span class="info-value" :style="{ color: imageUrl ? '#67c23a' : '#c0c4cc' }">{{ cropW || 0 }} × {{ cropH || 0 }}（4:3）</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">文件名</span>
+              <span class="info-value">{{ fileName || '未选择' }}</span>
             </div>
           </div>
 
@@ -390,6 +419,10 @@ const clearAll = () => {
 .info-value {
   color: #303133;
   font-weight: 500;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .action-row {

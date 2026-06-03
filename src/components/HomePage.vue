@@ -5,6 +5,7 @@ import WorkPhotoStitching6 from './ImageProcessing/WorkPhotoStitchingGrid.vue'
 import WorkPhotoStitchingLong from './ImageProcessing/WorkPhotoStitching_Long.vue'
 import ImageAnnotation from './ImageProcessing/ImageAnnotation.vue'
 import ImageCropper from './ImageProcessing/ImageCropper.vue'
+import ImageCompressor from './ImageProcessing/ImageCompressor.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
 
@@ -58,10 +59,13 @@ onMounted(() => {
               <span>工作照拼接-长图</span>
             </el-menu-item>
             <el-menu-item index="2-5">
-              <span>图片标注</span>
+              <span>图片标注（200字以内）</span>
             </el-menu-item>
             <el-menu-item index="2-6">
               <span>图片裁剪（4:3）</span>
+            </el-menu-item>
+            <el-menu-item index="2-7">
+              <span>图片压缩（≤500KB）</span>
             </el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="3">
@@ -106,6 +110,7 @@ onMounted(() => {
           <WorkPhotoStitchingLong v-if="activeIndex === '2-4'" />
           <ImageAnnotation v-if="activeIndex === '2-5'" />
           <ImageCropper v-if="activeIndex === '2-6'" />
+          <ImageCompressor v-if="activeIndex === '2-7'" />
 
           <!-- 绵竹地图 -->
           <MianzhuMap v-if="activeIndex === '5'" />
