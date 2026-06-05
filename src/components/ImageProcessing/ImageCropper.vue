@@ -5,6 +5,13 @@ import { ElMessage } from 'element-plus'
 const imageUrl = ref('')
 const fileName = ref('')
 const imgEl = ref<HTMLImageElement | null>(null)
+const outputFormat = ref('jpeg')
+
+const formatSize = (bytes: number) => {
+  if (bytes < 1024) return bytes + 'B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB'
+  return (bytes / 1024 / 1024).toFixed(2) + 'MB'
+}
 
 // 裁剪区域位置（基于图片实际像素坐标）
 const cropX = ref(0)
@@ -15,6 +22,7 @@ const cropH = ref(0)
 const isDragging = ref(false)
 const dragStart = { x: 0, y: 0, cx: 0, cy: 0 }
 const isExporting = ref(false)
+const isCopying = ref(false)
 
 // 图片加载后的自然尺寸
 const natW = ref(0)
@@ -37,6 +45,7 @@ const handleUpload = (e: Event) => {
     return
   }
   fileName.value = file.name
+  outputFormat.value = /\.png$/i.test(file.name) ? 'png' : 'jpeg'
   const reader = new FileReader()
   reader.onload = () => {
     imageUrl.value = reader.result as string
@@ -169,16 +178,18 @@ const exportCrop = async () => {
   await new Promise(r => setTimeout(r, 50))
   try {
     const canvas = getCroppedCanvas()
+    const mime = outputFormat.value === 'png' ? 'image/png' : 'image/jpeg'
+    const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
     let quality = 0.92
-    let url = canvas.toDataURL('image/jpeg', quality)
+    let url = canvas.toDataURL(mime, quality)
     while (url.length > 5 * 1024 * 1024 && quality > 0.2) {
       quality -= 0.05
-      url = canvas.toDataURL('image/jpeg', quality)
+      url = canvas.toDataURL(mime, quality)
     }
     const link = document.createElement('a')
     const ts = new Date()
     const timeStr = `${ts.getFullYear()}${String(ts.getMonth()+1).padStart(2,'0')}${String(ts.getDate()).padStart(2,'0')}_${String(ts.getHours()).padStart(2,'0')}${String(ts.getMinutes()).padStart(2,'0')}${String(ts.getSeconds()).padStart(2,'0')}`
-    link.download = `裁剪_${timeStr}.jpg`
+    link.download = `裁剪_${timeStr}.${ext}`
     link.href = url
     link.click()
   } catch {
@@ -190,9 +201,10 @@ const exportCrop = async () => {
 
 const copyToClipboard = async () => {
   if (!imageUrl.value || !imgEl.value) return
+  isCopying.value = true
   try {
     let canvas = getCroppedCanvas()
-    const maxClip = 2000
+    const maxClip = 1600
     if (canvas.width > maxClip || canvas.height > maxClip) {
       const s = maxClip / Math.max(canvas.width, canvas.height)
       const tmp = document.createElement('canvas')
@@ -206,9 +218,11 @@ const copyToClipboard = async () => {
     }
     const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-    ElMessage.success('已复制到剪贴板')
+    ElMessage.success(`已复制到剪贴板（${formatSize(blob.size)}）`)
   } catch {
     ElMessage.error('复制失败')
+  } finally {
+    isCopying.value = false
   }
 }
 
@@ -240,6 +254,7 @@ const clearAll = () => {
   imgEl.value = null
   natW.value = 0
   natH.value = 0
+  outputFormat.value = 'jpeg'
 }
 </script>
 
@@ -256,7 +271,7 @@ const clearAll = () => {
         <div class="control-panel">
           <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
             <el-icon><Plus /></el-icon>
-            <span>选择图片</span>
+            <span>点击上传图片</span>
             <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
           <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleUpload" />
@@ -277,7 +292,7 @@ const clearAll = () => {
           </div>
 
           <div class="action-row">
-            <el-button type="success" @click="copyToClipboard" :disabled="!imageUrl">
+            <el-button type="success" @click="copyToClipboard" :disabled="!imageUrl" :loading="isCopying">
               复制到剪贴板
             </el-button>
             <el-button type="primary" @click="exportCrop" :loading="isExporting" :disabled="!imageUrl">
@@ -285,6 +300,7 @@ const clearAll = () => {
             </el-button>
             <el-button type="danger" :disabled="!imageUrl" @click="clearAll">清空</el-button>
           </div>
+          <div class="clipboard-hint">提示：由于浏览器机制限制，复制到剪贴板仅支持 PNG 格式，文件大小会较原图明显增加。</div>
         </div>
 
         <div class="preview-panel">
@@ -352,7 +368,7 @@ const clearAll = () => {
 .content-layout {
   display: flex;
   gap: 20px;
-  min-height: 500px;
+  align-items: flex-start;
 }
 
 .control-panel {
@@ -380,7 +396,7 @@ const clearAll = () => {
 .upload-area .el-icon {
   font-size: 28px;
   display: block;
-  margin-bottom: 6px;
+  margin: 0 auto 6px;
 }
 
 .upload-area span {
@@ -437,6 +453,18 @@ const clearAll = () => {
   width: 100%;
   max-width: 200px;
   margin-left: 0 !important;
+}
+
+.clipboard-hint {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  background: #fef6ec;
+  border-left: 3px solid #e6a23c;
+  border-radius: 4px;
+  text-align: left;
 }
 
 .help-text {
@@ -521,7 +549,7 @@ const clearAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
+  height: 350px;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;

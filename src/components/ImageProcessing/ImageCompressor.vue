@@ -8,6 +8,7 @@ const fileSize = ref(0)
 const compressedUrl = ref('')
 const compressedSize = ref(0)
 const isProcessing = ref(false)
+const outputFormat = ref('jpeg') // 'jpeg' 或 'png'
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) return bytes + 'B'
@@ -40,11 +41,13 @@ const doCompress = async () => {
     const ctx = cvs.getContext('2d')!
     ctx.drawImage(img, 0, 0, cvs.width, cvs.height)
 
+    const mime = outputFormat.value === 'png' ? 'image/png' : 'image/jpeg'
+    const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
     let quality = 0.85
-    let url = cvs.toDataURL('image/jpeg', quality)
+    let url = cvs.toDataURL(mime, quality)
     while (url.length > 500 * 1024 && quality > 0.1) {
       quality -= 0.05
-      url = cvs.toDataURL('image/jpeg', quality)
+      url = cvs.toDataURL(mime, quality)
     }
     while (url.length > 500 * 1024 && cvs.width > 200) {
       const s = 0.8
@@ -54,15 +57,17 @@ const doCompress = async () => {
       tmp.getContext('2d')!.drawImage(cvs, 0, 0, tmp.width, tmp.height)
       cvs = tmp
       quality = 0.85
-      url = cvs.toDataURL('image/jpeg', quality)
+      url = cvs.toDataURL(mime, quality)
       while (url.length > 500 * 1024 && quality > 0.1) {
         quality -= 0.05
-        url = cvs.toDataURL('image/jpeg', quality)
+        url = cvs.toDataURL(mime, quality)
       }
     }
 
     compressedUrl.value = url
-    compressedSize.value = url.length
+    // 计算实际二进制大小（Base64 → 真实尺寸）
+    const raw = url.split(',')[1] || ''
+    compressedSize.value = Math.round(raw.length * 3 / 4)
     ElMessage.success('压缩完成')
   } catch {
     ElMessage.error('压缩失败')
@@ -76,7 +81,8 @@ const startCompress = (name: string, size: number, dataUrl: string) => {
   fileSize.value = size
   compressedUrl.value = ''
   imageUrl.value = dataUrl
-  // 图片加载完成后自动压缩
+  // 根据扩展名判断输出格式
+  outputFormat.value = /\.png$/i.test(name) ? 'png' : 'jpeg'
   const img = new Image()
   img.onload = () => doCompress()
   img.src = dataUrl
@@ -122,26 +128,10 @@ const download = () => {
   if (!compressedUrl.value) return
   const link = document.createElement('a')
   const name = fileName.value.replace(/\.[^.]+$/, '')
-  link.download = `${name}_压缩.jpg`
+  const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
+  link.download = `${name}_压缩.${ext}`
   link.href = compressedUrl.value
   link.click()
-}
-
-const copyToClipboard = async () => {
-  if (!compressedUrl.value) return
-  try {
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = compressedUrl.value
-    })
-    const cvs = document.createElement('canvas')
-    cvs.width = img.width; cvs.height = img.height
-    cvs.getContext('2d')!.drawImage(img, 0, 0)
-    const blob = await new Promise<Blob>(resolve => cvs.toBlob(b => resolve(b!), 'image/png'))
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-    ElMessage.success('已复制到剪贴板')
-  } catch {
-    ElMessage.error('复制失败')
-  }
 }
 
 const clearAll = () => {
@@ -166,7 +156,7 @@ const clearAll = () => {
         <div class="control-panel">
           <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
             <el-icon><Plus /></el-icon>
-            <span>选择图片</span>
+            <span>点击上传图片</span>
             <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
           <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleUpload" />
@@ -191,14 +181,12 @@ const clearAll = () => {
           </div>
 
           <div class="action-row">
-            <el-button type="success" @click="copyToClipboard" :disabled="!compressedUrl">
-              复制到剪贴板
-            </el-button>
             <el-button type="primary" @click="download" :disabled="!compressedUrl">
               导出图片
             </el-button>
-            <el-button type="danger" @click="clearAll">清空</el-button>
+            <el-button type="danger" :disabled="!imageUrl" @click="clearAll">清空</el-button>
           </div>
+          <div class="clipboard-hint">提示：由于浏览器机制限制，复制到剪贴板仅支持 PNG 格式，文件大小会较原图明显增加，故不提供复制到剪贴板功能，请点击导出图片。</div>
         </div>
 
         <div class="preview-panel">
@@ -237,11 +225,11 @@ const clearAll = () => {
 .content-layout {
   display: flex;
   gap: 20px;
-  min-height: 400px;
+  align-items: flex-start;
 }
 
 .control-panel {
-  width: 260px;
+  width: 240px;
   flex-shrink: 0;
 }
 
@@ -265,11 +253,13 @@ const clearAll = () => {
 .upload-area .el-icon {
   font-size: 28px;
   display: block;
+  margin: 0 auto;
   margin-bottom: 6px;
 }
 
 .upload-area span {
   display: block;
+  margin: 0 auto;
   font-size: 14px;
 }
 
@@ -320,8 +310,20 @@ const clearAll = () => {
 
 .action-row :deep(.el-button) {
   width: 100%;
-  max-width: 220px;
+  max-width: 200px;
   margin-left: 0 !important;
+}
+
+.clipboard-hint {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  background: #fef6ec;
+  border-left: 3px solid #e6a23c;
+  border-radius: 4px;
+  text-align: left;
 }
 
 .preview-panel {
@@ -342,10 +344,8 @@ const clearAll = () => {
 
 .preview-img {
   max-width: 100%;
-  max-height: 60vh;
+  max-height: 70vh;
   display: block;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .preview-placeholder {
@@ -353,7 +353,7 @@ const clearAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  height: 350px;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;
@@ -387,11 +387,11 @@ const clearAll = () => {
 .content-layout {
   display: flex;
   gap: 20px;
-  min-height: 400px;
+  align-items: flex-start;
 }
 
 .control-panel {
-  width: 260px;
+  width: 240px;
   flex-shrink: 0;
 }
 
@@ -415,11 +415,13 @@ const clearAll = () => {
 .upload-area .el-icon {
   font-size: 28px;
   display: block;
+  margin: 0 auto;
   margin-bottom: 6px;
 }
 
 .upload-area span {
   display: block;
+  margin: 0 auto;
   font-size: 14px;
 }
 
@@ -470,8 +472,20 @@ const clearAll = () => {
 
 .action-row :deep(.el-button) {
   width: 100%;
-  max-width: 220px;
+  max-width: 200px;
   margin-left: 0 !important;
+}
+
+.clipboard-hint {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  background: #fef6ec;
+  border-left: 3px solid #e6a23c;
+  border-radius: 4px;
+  text-align: left;
 }
 
 .preview-panel {
@@ -492,10 +506,8 @@ const clearAll = () => {
 
 .preview-img {
   max-width: 100%;
-  max-height: 60vh;
+  max-height: 70vh;
   display: block;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .preview-placeholder {
@@ -503,7 +515,7 @@ const clearAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  height: 350px;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;
