@@ -11,6 +11,7 @@ const fontSize = ref(30)
 const fontFamily = ref('STHeiti, SimHei')
 const textColor = ref('#ffffff')
 const isExporting = ref(false)
+const isCopying = ref(false)
 
 const positionOptions = [
   { value: 'top-left', label: '左上角' },
@@ -177,10 +178,11 @@ const exportImage = async () => {
 
 const copyToClipboard = async () => {
   if (!imageUrl.value || !img.value) return
+  isCopying.value = true
   try {
     let canvas = drawAnnotationOnCanvas()
     // 等比缩放到最长边 2000px，大幅提升速度
-    const maxClip = 2000
+    const maxClip = 1600
     if (canvas.width > maxClip || canvas.height > maxClip) {
       const s = maxClip / Math.max(canvas.width, canvas.height)
       const tmp = document.createElement('canvas')
@@ -194,9 +196,12 @@ const copyToClipboard = async () => {
     }
     const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-    ElMessage.success('已复制到剪贴板')
+    const sz = blob.size < 1024 ? blob.size + 'B' : blob.size < 1048576 ? (blob.size / 1024).toFixed(1) + 'KB' : (blob.size / 1048576).toFixed(2) + 'MB'
+    ElMessage.success(`已复制到剪贴板（${sz}）`)
   } catch {
     ElMessage.error('复制失败')
+  } finally {
+    isCopying.value = false
   }
 }
 
@@ -222,7 +227,7 @@ const clearAll = () => {
         <div class="control-panel">
           <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
             <el-icon><Plus /></el-icon>
-            <span>选择图片</span>
+            <span>点击上传图片</span>
             <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
           <input
@@ -233,7 +238,7 @@ const clearAll = () => {
             @change="handleUpload"
           />
 
-          <div v-if="imageUrl" class="annotation-section">
+          <div class="annotation-section">
             <div class="section-title">标注文字（200字以内）</div>
             <el-input
               v-model="annotation"
@@ -267,14 +272,15 @@ const clearAll = () => {
             </div>
 
             <div class="action-row">
-              <el-button type="success" @click="copyToClipboard" :disabled="!imageUrl">
+              <el-button type="success" @click="copyToClipboard" :disabled="!imageUrl" :loading="isCopying">
                 复制到剪贴板
               </el-button>
               <el-button type="primary" @click="exportImage" :loading="isExporting" :disabled="!imageUrl">
                 导出图片
               </el-button>
-              <el-button type="danger" @click="clearAll">清空</el-button>
+              <el-button type="danger" :disabled="!imageUrl" @click="clearAll">清空</el-button>
             </div>
+            <div class="clipboard-hint">提示：由于浏览器机制限制，复制到剪贴板仅支持 PNG 格式，文件大小会较原图明显增加。</div>
           </div>
         </div>
 
@@ -319,11 +325,11 @@ const clearAll = () => {
 .content-layout {
   display: flex;
   gap: 20px;
-  min-height: 500px;
+  align-items: flex-start;
 }
 
 .control-panel {
-  width: 280px;
+  width: 240px;
   flex-shrink: 0;
 }
 
@@ -347,7 +353,7 @@ const clearAll = () => {
 .upload-area .el-icon {
   font-size: 28px;
   display: block;
-  margin-bottom: 6px;
+  margin: 0 auto 6px;
 }
 
 .upload-area span {
@@ -419,6 +425,18 @@ const clearAll = () => {
   margin-left: 0 !important;
 }
 
+.clipboard-hint {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+  background: #fef6ec;
+  border-left: 3px solid #e6a23c;
+  border-radius: 4px;
+  text-align: left;
+}
+
 .preview-panel {
   flex: 1;
   min-width: 0;
@@ -434,8 +452,6 @@ const clearAll = () => {
   max-width: 100%;
   max-height: 70vh;
   display: block;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .annotation-overlay {
@@ -453,11 +469,11 @@ const clearAll = () => {
 }
 
 .annotation-overlay.pos-top-left { top: 8px; left: 8px; }
-.annotation-overlay.pos-top-center { top: 8px; left: 50%; transform: translateX(-50%); text-align: center; }
+.annotation-overlay.pos-top-center { top: 8px; left: 8px; right: 8px; text-align: center; }
 .annotation-overlay.pos-top-right { top: 8px; right: 8px; text-align: right; }
-.annotation-overlay.pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+.annotation-overlay.pos-center { top: 50%; left: 8px; right: 8px; transform: translateY(-50%); text-align: center; }
 .annotation-overlay.pos-bottom-left { bottom: 8px; left: 8px; }
-.annotation-overlay.pos-bottom-center { bottom: 8px; left: 50%; transform: translateX(-50%); text-align: center; }
+.annotation-overlay.pos-bottom-center { bottom: 8px; left: 8px; right: 8px; text-align: center; }
 .annotation-overlay.pos-bottom-right { bottom: 8px; right: 8px; text-align: right; }
 
 .preview-placeholder {
@@ -465,7 +481,7 @@ const clearAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
+  height: 350px;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;
