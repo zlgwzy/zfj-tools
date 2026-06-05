@@ -6,6 +6,7 @@ import WorkPhotoStitchingLong from './ImageProcessing/WorkPhotoStitching_Long.vu
 import ImageAnnotation from './ImageProcessing/ImageAnnotation.vue'
 import ImageCropper from './ImageProcessing/ImageCropper.vue'
 import ImageCompressor from './ImageProcessing/ImageCompressor.vue'
+import BatchAnnotator from './ImageProcessing/BatchAnnotator.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
 
@@ -68,17 +69,22 @@ onMounted(() => {
               <span>图片压缩（≤500KB）</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-sub-menu index="3">
+          <el-menu-item index="3">
+            <el-icon><management /></el-icon>
+            <span>文档处理</span>
+          </el-menu-item>
+          <el-menu-item index="4">
+            <el-icon><list /></el-icon>
+            <span>表格处理</span>
+          </el-menu-item>
+          <el-sub-menu index="8">
             <template #title>
-              <el-icon><management /></el-icon>
-              <span>文档处理</span>
+              <el-icon><tools /></el-icon>
+              <span>自动化</span>
             </template>
-          </el-sub-menu>
-          <el-sub-menu index="4">
-            <template #title>
-              <el-icon><list /></el-icon>
-              <span>表格处理</span>
-            </template>
+            <el-menu-item index="8-1">
+              <span>批量图片标注</span>
+            </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="5">
             <el-icon><location /></el-icon>
@@ -99,7 +105,7 @@ onMounted(() => {
             <img src="/images/home_page.jpeg" alt="首页图片" class="home-page-image">
             <el-card class="welcome-card">
               <div class="welcome-content">
-                <p>本工具箱提供了一系列实用的工具，包括图片处理、文档处理、表格处理等功能，旨在提高执法局工作人员的日常工作效率。所有工具都经过精心设计和优化，操作简单直观，能够满足日常办公需求。</p>
+                <p>本工具箱提供了一系列实用的工具，包括图片处理、文档处理、表格处理、自动化流程等功能，旨在提高执法局工作人员的日常工作效率。所有工具都经过精心设计和优化，操作简单直观，能够满足日常办公需求。</p>
               </div>
             </el-card>
           </div>
@@ -112,9 +118,31 @@ onMounted(() => {
           <ImageCropper v-if="activeIndex === '2-6'" />
           <ImageCompressor v-if="activeIndex === '2-7'" />
 
+          <!-- 文档处理 -->
+          <div v-if="activeIndex === '3'" class="main-container">
+            <el-card class="welcome-card">
+              <div class="welcome-content" style="text-align: center; padding: 60px">
+                <el-icon style="font-size: 48px; color: #c0c4cc; margin-bottom: 16px"><management /></el-icon>
+                <p style="color: #909399; font-size: 16px;">文档处理模块开发中…</p>
+              </div>
+            </el-card>
+          </div>
+
+          <!-- 表格处理 -->
+          <div v-if="activeIndex === '4'" class="main-container">
+            <el-card class="welcome-card">
+              <div class="welcome-content" style="text-align: center; padding: 60px">
+                <el-icon style="font-size: 48px; color: #c0c4cc; margin-bottom: 16px"><list /></el-icon>
+                <p style="color: #909399; font-size: 16px;">表格处理模块开发中…</p>
+              </div>
+            </el-card>
+          </div>
+
           <!-- 绵竹地图 -->
           <MianzhuMap v-if="activeIndex === '5'" />
-          
+
+          <BatchAnnotator v-if="activeIndex === '8-1'" />
+
           <!-- 更新日志 -->
           <Changelog v-if="activeIndex === '6'" />
         </el-main>
