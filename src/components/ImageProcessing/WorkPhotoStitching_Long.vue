@@ -39,6 +39,7 @@ const orientation = ref<'vertical' | 'horizontal'>('horizontal')
 const uniformSize = ref<boolean>(true)
 const uniformWidth = ref<boolean>(false)
 const isProcessing = ref<boolean>(false)
+const isCopying = ref(false)
 const processingProgress = ref<number>(0)
 const isUploading = ref<boolean>(false)
 const uploadProgress = ref<number>(0)
@@ -557,9 +558,10 @@ const downloadResult = () => {
 // 复制图片到剪贴板（转 PNG 后写入，兼容性更好）
 const copyImageToClipboard = async () => {
   if (!resultImage.value) return
+  isCopying.value = true
   try {
     const blob = await (await fetch(resultImage.value)).blob()
-    // 非 PNG 格式先转为 PNG，剪贴板 API 对 PNG 支持最好
+    let finalSize = blob.size
     if (blob.type !== 'image/png') {
       const img = await createImageBitmap(blob)
       const cvs = document.createElement('canvas')
@@ -569,12 +571,16 @@ const copyImageToClipboard = async () => {
       ctx.drawImage(img, 0, 0)
       const pngBlob = await new Promise<Blob>(resolve => cvs.toBlob(b => resolve(b!), 'image/png'))
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })])
+      finalSize = pngBlob.size
     } else {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
     }
-    ElMessage.success('已复制到剪贴板')
+    const s = finalSize < 1024 ? finalSize + 'B' : finalSize < 1048576 ? (finalSize / 1024).toFixed(1) + 'KB' : (finalSize / 1048576).toFixed(2) + 'MB'
+    ElMessage.success(`已复制到剪贴板（${s}）`)
   } catch {
     ElMessage.error('复制失败，请手动下载')
+  } finally {
+    isCopying.value = false
   }
 }
 
@@ -807,7 +813,7 @@ onUnmounted(() => {
         <div class="result-header">
           <span>拼接结果</span>
           <div class="result-actions">
-            <el-button type="success" @click="copyImageToClipboard">复制到剪贴板</el-button>
+            <el-button type="success" @click="copyImageToClipboard" :loading="isCopying">复制到剪贴板</el-button>
             <el-button type="primary" @click="downloadResult">下载长图</el-button>
           </div>
         </div>
