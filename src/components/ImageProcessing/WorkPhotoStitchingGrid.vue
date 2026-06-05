@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import html2canvas from 'html2canvas'
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { usePhotoStitchingStore } from '@/stores/photoStitching'
-import artTextImg3 from '@/assets/art_fonts/美酒名城画境绵竹-夏日版.png'
-import artTextImg4 from '@/assets/art_fonts/美酒名城画境绵竹-执法版.png'
-import artTextImg5 from '@/assets/art_fonts/美酒名城画境绵竹-水墨版.png'
-import artTextImg6 from '@/assets/art_fonts/美酒名城画境绵竹-鎏金版.png'
+import artTextImg from '@/assets/art_fonts/美酒名城画境绵竹-执法版.png'
 
 // 艺术字模板列表
 const artTextTemplates = [
-  { name: '美酒名城·画境绵竹\n夏日版', file: artTextImg3 },
-  { name: '美酒名城·画境绵竹\n执法版', file: artTextImg4 },
-  { name: '美酒名城·画境绵竹\n水墨版', file: artTextImg5 },
-  { name: '美酒名城·画境绵竹\n鎏金版', file: artTextImg6 }
+  { name: '美酒名城·画境绵竹\n执法版', file: artTextImg }
 ]
 
 // 选择艺术字模板
@@ -48,6 +42,18 @@ const fontFamily = computed({
 const firstLineAlign = computed({
   get: () => store.firstLineAlign,
   set: (value: string) => store.firstLineAlign = value
+})
+const firstLineIndent = computed({
+  get: () => store.firstLineIndent,
+  set: (value: boolean) => store.firstLineIndent = value
+})
+const useTitleSize = computed({
+  get: () => store.useTitleSize,
+  set: (value: boolean) => store.useTitleSize = value
+})
+const titleFontSize = computed({
+  get: () => store.titleFontSize,
+  set: (value: number) => store.titleFontSize = value
 })
 const useArtText = computed({
   get: () => store.useArtText,
@@ -182,7 +188,18 @@ onBeforeUnmount(() => {
 })
 
 const isExporting = ref(false)
+const isCopying = ref(false)
 const showAnnotation = ref(false)
+
+// 关闭标注时清除已填写内容
+watch(showAnnotation, (val) => {
+  if (!val) {
+    imageList.value.forEach(item => { item.annotation = ''; item.annotationPos = 'bottom-right' })
+  }
+})
+
+// 是否有已上传的图片
+const hasImages = computed(() => imageList.value.some(item => !!item.url))
 
 // 通用的图片压缩函数
 const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number): string => {
@@ -345,17 +362,32 @@ const exportImage = async () => {
 const copyToClipboard = async () => {
   const element = document.getElementById('photo-container')
   if (!element) return
+  isCopying.value = true
   try {
-    const canvas = await html2canvas(element, {
+    element.classList.add('is-exporting')
+    let canvas = await html2canvas(element, {
       useCORS: true,
       scale: 2,
       backgroundColor: null
     })
+    const maxClip = 1600
+    if (canvas.width > maxClip || canvas.height > maxClip) {
+      const s = maxClip / Math.max(canvas.width, canvas.height)
+      const tmp = document.createElement('canvas')
+      tmp.width = Math.floor(canvas.width * s)
+      tmp.height = Math.floor(canvas.height * s)
+      tmp.getContext('2d')!.drawImage(canvas, 0, 0, tmp.width, tmp.height)
+      canvas = tmp
+    }
     const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'))
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-    ElMessage.success('已复制到剪贴板')
+    const sz = blob.size < 1024 ? blob.size + 'B' : blob.size < 1048576 ? (blob.size / 1024).toFixed(1) + 'KB' : (blob.size / 1048576).toFixed(2) + 'MB'
+    ElMessage.success(`已复制到剪贴板（${sz}）`)
   } catch {
     ElMessage.error('复制失败')
+  } finally {
+    element.classList.remove('is-exporting')
+    isCopying.value = false
   }
 }
 
@@ -439,46 +471,46 @@ const gridStyle = computed(() => {
             />
           </div>
           <div class="text-style-controls">
-            <div class="font-size-control">
-              <span class="font-size-label">文本字号：</span>
-              <el-slider
-                v-model="fontSize"
-                :min="20"
-                :max="35"
-                :step="1"
-                @input="handleFontSizeChange"
-                class="compact-slider"
-              />
+            <div class="style-row-main">
+              <div class="font-size-control">
+                <span class="font-size-label">文本字号：</span>
+                <el-slider v-model="fontSize" :min="20" :max="35" :step="1" @input="handleFontSizeChange" class="compact-slider" />
+              </div>
+              <div class="font-family-control">
+                <span class="font-family-label">字体：</span>
+                <el-select v-model="fontFamily" class="font-select" size="small">
+                  <el-option v-for="item in fontOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </div>
+              <div class="align-control">
+                <span class="align-label">首行对齐：</span>
+                <el-radio-group v-model="firstLineAlign" size="small">
+                  <el-radio-button value="center">居中</el-radio-button>
+                  <el-radio-button value="left">左对齐</el-radio-button>
+                </el-radio-group>
+              </div>
+              <div class="color-control">
+                <span class="color-label">文本颜色：</span>
+                <el-color-picker v-model="textColor" show-alpha class="color-picker" />
+              </div>
             </div>
-            <div class="font-family-control">
-              <span class="font-family-label">字体：</span>
-              <el-select
-                v-model="fontFamily"
-                class="font-select"
-                size="small"
-              >
-                <el-option
-                  v-for="item in fontOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
-            </div>
-            <div class="align-control">
-              <span class="align-label">首行对齐：</span>
-              <el-radio-group v-model="firstLineAlign" size="small">
-                <el-radio-button value="center">居中</el-radio-button>
-                <el-radio-button value="left">左对齐</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="color-control">
-              <span class="color-label">文本颜色：</span>
-              <el-color-picker
-                v-model="textColor"
-                show-alpha
-                class="color-picker"
-              />
+            <div class="style-row-sub">
+              <div class="indent-control">
+                <span class="indent-label">行首缩进：</span>
+                <el-switch v-model="firstLineIndent" />
+              </div>
+              <div class="indent-control">
+                <span class="indent-label">启用标题：</span>
+                <el-switch v-model="useTitleSize" />
+              </div>
+              <div v-if="useTitleSize" class="indent-control">
+                <span class="indent-label">标题字号：</span>
+                <el-slider v-model="titleFontSize" :min="26" :max="50" :step="1" class="title-size-slider" />
+              </div>
+              <div class="annotation-toggle">
+                <span class="annotation-toggle-label">图片标注：</span>
+                <el-switch v-model="showAnnotation" active-text="开启" inactive-text="关闭" />
+              </div>
             </div>
           </div>
         </div>
@@ -494,7 +526,7 @@ const gridStyle = computed(() => {
                 :class="{ 'is-active': artTextUrl === tpl.file }"
                 @click="selectArtTextTemplate(tpl.file)"
               >
-                <el-image :src="tpl.file" fit="cover" class="template-thumb" />
+                <el-image :src="tpl.file" fit="contain" class="template-thumb" />
                 <span class="template-name">{{ tpl.name }}</span>
               </div>
             </div>
@@ -515,10 +547,6 @@ const gridStyle = computed(() => {
           </div>
         </div>
 
-        <div class="annotation-toggle">
-          <span class="annotation-toggle-label">图片标注：</span>
-          <el-switch v-model="showAnnotation" active-text="开启" inactive-text="关闭" />
-        </div>
         <div v-if="showAnnotation" class="annotation-controls">
           <div class="annotation-header">图片标注</div>
           <div class="annotation-style-controls">
@@ -585,13 +613,13 @@ const gridStyle = computed(() => {
         </div>
 
         <div class="action-buttons">
-          <el-button type="success" @click="copyToClipboard">
+          <el-button type="success" :disabled="!hasImages" @click="copyToClipboard" :loading="isCopying">
             复制到剪贴板
           </el-button>
-          <el-button type="primary" @click="exportImage">
+          <el-button type="primary" :disabled="!hasImages" @click="exportImage">
             导出图片
           </el-button>
-          <el-button type="danger" @click="store.resetState()">
+          <el-button type="danger" :disabled="!hasImages" @click="store.resetState()">
             清除内容
           </el-button>
         </div>
@@ -615,8 +643,8 @@ const gridStyle = computed(() => {
           </div>
           <template v-if="!useArtText">
             <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
-              <div class="first-line" :style="{ textAlign: firstLineAlign as 'center' | 'left' }">{{ firstLine }}</div>
-              <div class="other-lines">{{ otherLines }}</div>
+              <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
+              <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
             </div>
           </template>
           <div v-if="useArtText && !artTextUrl" class="banner-art-text-placeholder">
@@ -679,17 +707,6 @@ const gridStyle = computed(() => {
               @change="handleImageUpload($event, index)"
               @click.stop
             />
-            <div class="scale-control">
-              <span class="scale-label">缩放：</span>
-              <el-slider
-                v-model="item.scale"
-                :min="1"
-                :max="1.5"
-                :step="0.05"
-                @input="handleScaleChange(index, $event)"
-                @click.stop
-              />
-            </div>
           </div>
         </div>
         <!-- 艺术字浮层 -->
@@ -784,6 +801,11 @@ const gridStyle = computed(() => {
 
 .first-line {
   text-align: center;
+}
+
+.first-line.title-active {
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .other-lines {
@@ -887,38 +909,6 @@ const gridStyle = computed(() => {
   z-index: 2;
 }
 
-.scale-control {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 3;
-}
-
-.scale-control .scale-label {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1;
-  margin-bottom: 0;
-}
-
-.scale-control :deep(.el-slider) {
-  flex: 1;
-  margin: 0;
-}
-
-.scale-control :deep(.el-slider__runway) {
-  margin: 0;
-}
-
-.photo-container.is-exporting .scale-control {
-  display: none;
-}
 
 .text-controls {
   display: flex;
@@ -966,9 +956,23 @@ const gridStyle = computed(() => {
 
 .text-style-controls {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.style-row-main {
+  display: flex;
   align-items: center;
   gap: 20px;
-  padding: 0 12px;
+  flex-wrap: wrap;
+}
+
+.style-row-sub {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .font-size-control {
@@ -1038,6 +1042,35 @@ const gridStyle = computed(() => {
 .color-picker {
   width: 40px;
   height: 32px;
+}
+
+.indent-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-size-slider {
+  width: 100px;
+}
+
+.title-size-slider :deep(.el-slider__runway) {
+  margin: 0;
+}
+
+.title-size-slider :deep(.el-slider__bar) {
+  height: 4px;
+}
+
+.title-size-slider :deep(.el-slider__button) {
+  width: 12px;
+  height: 12px;
+}
+
+.indent-label {
+  font-size: 14px;
+  color: #606266;
+  min-width: 60px;
 }
 
 .color-picker :deep(.el-color-picker__trigger) {

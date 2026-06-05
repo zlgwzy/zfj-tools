@@ -30,7 +30,10 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const fontSize = ref(26)
     const textColor = ref('#f02f2f')
     const fontFamily = ref('STKaiti, KaiTi')
-    const firstLineAlign = ref('center')
+    const firstLineAlign = ref('left')
+    const firstLineIndent = ref(true)
+    const useTitleSize = ref(false)
+    const titleFontSize = ref(35)
     const useArtText = ref(false)
     const artTextUrl = ref('')
     const artTextScale = ref(1)
@@ -46,7 +49,10 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       fontSize.value = 26
       textColor.value = '#f02f2f'
       fontFamily.value = 'STKaiti, KaiTi'
-      firstLineAlign.value = 'center'
+      firstLineAlign.value = 'left'
+      firstLineIndent.value = true
+      useTitleSize.value = false
+      titleFontSize.value = 35
       artTextUrl.value = ''
       artTextScale.value = 1
       artTextX.value = 20
@@ -63,6 +69,9 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       textColor,
       fontFamily,
       firstLineAlign,
+      firstLineIndent,
+      useTitleSize,
+      titleFontSize,
       useArtText,
       artTextUrl,
       artTextScale,
