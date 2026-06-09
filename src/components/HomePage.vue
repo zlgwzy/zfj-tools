@@ -7,6 +7,7 @@ import ImageAnnotation from './ImageProcessing/ImageAnnotation.vue'
 import ImageCropper from './ImageProcessing/ImageCropper.vue'
 import ImageCompressor from './ImageProcessing/ImageCompressor.vue'
 import BatchAnnotator from './ImageProcessing/BatchAnnotator.vue'
+import WorkPhotoComparison from './ImageProcessing/WorkPhotoComparison.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
 
@@ -58,6 +59,9 @@ onMounted(() => {
             </el-menu-item>
             <el-menu-item index="2-4">
               <span>工作照拼接-长图</span>
+            </el-menu-item>
+            <el-menu-item index="2-8">
+              <span>工作照拼接-对比图</span>
             </el-menu-item>
             <el-menu-item index="2-5">
               <span>图片标注（200字以内）</span>
@@ -114,6 +118,7 @@ onMounted(() => {
           <WorkPhotoStitching v-if="activeIndex === '2-1'" :grid-type="4" />
           <WorkPhotoStitching6 v-if="activeIndex === '2-3'" :grid-type="6" />
           <WorkPhotoStitchingLong v-if="activeIndex === '2-4'" />
+          <WorkPhotoComparison v-if="activeIndex === '2-8'" />
           <ImageAnnotation v-if="activeIndex === '2-5'" />
           <ImageCropper v-if="activeIndex === '2-6'" />
           <ImageCompressor v-if="activeIndex === '2-7'" />
