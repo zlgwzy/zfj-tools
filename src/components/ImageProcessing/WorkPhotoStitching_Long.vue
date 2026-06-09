@@ -584,31 +584,6 @@ const copyImageToClipboard = async () => {
   }
 }
 
-// 生成对比图（预设处置前/处置后标注）
-const generateComparison = async () => {
-  if (imageList.value.length < 2) {
-    ElMessage.warning('请至少添加2张图片')
-    return
-  }
-  // 禁止 watcher 干扰，避免自动生成覆盖对比图结果
-  if (autoStitchTimer) clearTimeout(autoStitchTimer)
-  skipAutoStitch = true
-  annotationFontSize.value = 35
-  annotationFontFamily.value = 'STHeiti, SimHei'
-  annotationColor.value = 'rgb(255, 25, 25)'
-  imageList.value[0].annotation = '处置前'
-  imageList.value[0].annotationPos = 'center'
-  imageList.value[1].annotation = '处置后'
-  imageList.value[1].annotationPos = 'center'
-  // 清除后续图片的标注
-  for (let i = 2; i < imageList.value.length; i++) {
-    imageList.value[i].annotation = ''
-    imageList.value[i].annotationPos = 'center'
-  }
-  await stitchLongImage(false, '对比图生成完成！')
-  skipAutoStitch = false
-}
-
 // 切换参数后自动重新生成长图（防抖）
 const annotationSnapshot = computed(() =>
   imageList.value.map(i => i.annotation + '|' + i.annotationPos).join(',')
@@ -691,7 +666,7 @@ onUnmounted(() => {
             </div>
             <div class="setting-item">
               <span class="label">操作提示：</span>
-              <span class="value" style="color: #409eff;">调整参数后将自动生成图片，对比图为处置前后对比</span>
+              <span class="value" style="color: #409eff;">调整参数后将自动生成图片</span>
             </div>
             <div class="upload-compact-area" @click="fileInput?.click()" :class="{ 'uploading': isUploading }">
               <el-icon><Plus /></el-icon>
@@ -726,9 +701,6 @@ onUnmounted(() => {
               <div class="action-row">
                 <el-button type="primary" :disabled="imageList.length < 2" @click="() => stitchLongImage()" :loading="isProcessing">
                   {{ resultImage ? '重新生成' : '生成长图' }}
-                </el-button>
-                <el-button type="success" :disabled="imageList.length < 2" @click="generateComparison">
-                  生成对比图
                 </el-button>
                 <el-button type="danger" :disabled="imageList.length === 0" @click="clearAll">
                   清空
