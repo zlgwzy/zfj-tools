@@ -983,7 +983,7 @@ onUnmounted(() => {
 }
 
 .image-list-section {
-  margin: 20px 0;
+  margin: 20px auto;
   max-width: 50%;
 }
 
