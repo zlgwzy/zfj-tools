@@ -1084,17 +1084,26 @@ onUnmounted(() => {
 
 .result-body {
   padding: 20px;
-  overflow: auto;
-  max-height: 70vh;
-  /* 确保横向滚动条可见 */
-  overflow-x: auto;
-  overflow-y: auto;
 }
 
 .result-preview {
   display: flex;
   justify-content: center;
-  min-width: fit-content;
+}
+
+/* 纵向排列：图片宽度为容器一半，居中 */
+.result-img[data-orientation="vertical"] {
+  width: 50%;
+  height: auto;
+  display: block;
+}
+
+/* 横向排列时的样式 */
+.result-img[data-orientation="horizontal"] {
+  max-width: 100%;
+  max-height: 60vh;
+  width: auto;
+  height: auto;
 }
 
 .result-img {
