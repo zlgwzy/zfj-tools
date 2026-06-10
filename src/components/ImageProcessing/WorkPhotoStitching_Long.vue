@@ -45,6 +45,7 @@ const isUploading = ref<boolean>(false)
 const uploadProgress = ref<number>(0)
 const maxImageSize = ref<number>(1434) // 最大图片尺寸限制 (2048 * 0.7)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const fullResCanvas = ref<HTMLCanvasElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 // 生成唯一ID
@@ -72,8 +73,8 @@ const compressImage = (file: File, maxSize: number = 2048): Promise<string> => {
       // 绘制压缩后的图片
       ctx.drawImage(img, 0, 0, width, height)
       
-      // 转换为DataURL，使用0.7压缩比例
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
+      // 转换为DataURL，使用0.92压缩比例
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
       resolve(dataUrl)
     }
     
@@ -506,10 +507,15 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
 
     console.log('Canvas尺寸:', canvas.width, 'x', canvas.height)
 
-    // 输出图片压缩：以图片数为基准，每张图最长边约 1200px
+    // 输出图片缩放：横向限制总宽度，纵向限制总高度，每张图约 2000px
     try {
       const maxOutput = Math.max(2000, Math.round(imageList.value.length * 2000))
       let outputCanvas = canvas
+      // 保存全尺寸画布供无损导出使用
+      const tmpCanvas = document.createElement('canvas')
+      tmpCanvas.width = canvas.width; tmpCanvas.height = canvas.height
+      tmpCanvas.getContext('2d')!.drawImage(canvas, 0, 0)
+      fullResCanvas.value = tmpCanvas
       if (canvas.width > maxOutput || canvas.height > maxOutput) {
         const s = maxOutput / Math.max(canvas.width, canvas.height)
         const tw = Math.floor(canvas.width * s)
@@ -560,6 +566,19 @@ const downloadResult = () => {
   link.download = `长图拼接_${ts}.jpg`
   link.href = resultImage.value
   link.click()
+}
+
+// 无损导出（不缩放、不降质）
+const exportLossless = async () => {
+  if (!fullResCanvas.value) return
+  const blob = await new Promise<Blob>(resolve => fullResCanvas.value!.toBlob(b => resolve(b!), 'image/jpeg', 1.0))
+  const link = document.createElement('a')
+  const now = new Date()
+  const ts = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`
+  link.download = `长图拼接_${ts}_无损.jpg`
+  link.href = URL.createObjectURL(blob)
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
 // 复制图片到剪贴板（转 PNG 后写入，兼容性更好）
@@ -614,6 +633,7 @@ const clearAll = () => {
   resultImage.value = ''
   processingProgress.value = 0
   uploadProgress.value = 0
+  fullResCanvas.value = null
 }
 
 // 移除自动拼接功能，改为手动点击生成
@@ -793,7 +813,8 @@ onUnmounted(() => {
           <span>拼接结果</span>
           <div class="result-actions">
             <el-button type="success" @click="copyImageToClipboard" :loading="isCopying">复制到剪贴板</el-button>
-            <el-button type="primary" @click="downloadResult">下载长图</el-button>
+            <el-button type="primary" @click="downloadResult">导出长图</el-button>
+            <el-button type="warning" @click="exportLossless" :disabled="!fullResCanvas">无损导出</el-button>
           </div>
         </div>
         <div class="result-body">
