@@ -524,7 +524,15 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
         tctx.drawImage(canvas, 0, 0, tw, th)
         outputCanvas = tmp
       }
-      resultImage.value = outputCanvas.toDataURL('image/jpeg', 0.92)
+      // 动态压缩：「图片数量 × 1MB」为目标（Base64 → 二进制换算）
+      const maxBytes = imageList.value.length * 1024 * 1024
+      const base64Target = Math.round(maxBytes * 4 / 3) + 50
+      let quality = 0.92, url = outputCanvas.toDataURL('image/jpeg', quality)
+      while (url.length > base64Target && quality > 0.15) {
+        quality -= 0.05
+        url = outputCanvas.toDataURL('image/jpeg', quality)
+      }
+      resultImage.value = url
       canvasRef.value = outputCanvas
 
       processingProgress.value = 100
