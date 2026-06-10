@@ -23,7 +23,7 @@ set SERVER_PATH=/www/wwwroot/hellokiki.cn/zfj-tools/
 
 REM 上传到服务器
 echo [2/3] 正在上传到服务器...
-scp -r dist/* %SERVER_USER%@%SERVER_HOST%:%SERVER_PATH%
+scp -r dist/. %SERVER_USER%@%SERVER_HOST%:%SERVER_PATH%
 if %errorlevel% neq 0 (
     echo 上传失败，请检查服务器连接
     pause
