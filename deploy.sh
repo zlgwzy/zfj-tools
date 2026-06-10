@@ -14,7 +14,10 @@ echo "[2/3] Uploading..."
 scp -r "dist/." "${SERVER_USER}@${SERVER_HOST}:${SERVER_PATH}"
 
 echo "Fixing permissions..."
-ssh "${SERVER_USER}@${SERVER_HOST}" "chmod -R 755 ${SERVER_PATH} && find ${SERVER_PATH} -type f -exec chmod 644 {} \;"
+ssh "${SERVER_USER}@${SERVER_HOST}" "
+  find ${SERVER_PATH} -not -name '.user.ini' -type d -exec chmod 755 {} +
+  find ${SERVER_PATH} -not -name '.user.ini' -type f -exec chmod 644 {} +
+"
 
 echo "Upload OK"
 echo ""
