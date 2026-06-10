@@ -506,13 +506,12 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
 
     console.log('Canvas尺寸:', canvas.width, 'x', canvas.height)
 
-    // 输出图片压缩：以单张图片最大尺寸为基准，避免多图叠加后过度压缩
+    // 输出图片压缩：以图片数为基准，每张图最长边约 1200px
     try {
-      const maxOutput = 2000
+      const maxOutput = Math.max(2000, Math.round(imageList.value.length * 2000))
       let outputCanvas = canvas
-      const maxImgDim = Math.max(...images.map(img => Math.max(img.width, img.height)))
-      if (maxImgDim > maxOutput) {
-        const s = maxOutput / maxImgDim
+      if (canvas.width > maxOutput || canvas.height > maxOutput) {
+        const s = maxOutput / Math.max(canvas.width, canvas.height)
         const tw = Math.floor(canvas.width * s)
         const th = Math.floor(canvas.height * s)
         const tmp = document.createElement('canvas')
@@ -527,7 +526,7 @@ const stitchLongImage = async (isAuto = false, successMsg?: string) => {
       // 动态压缩：「图片数量 × 1MB」为目标（Base64 → 二进制换算）
       const maxBytes = imageList.value.length * 1024 * 1024
       const base64Target = Math.round(maxBytes * 4 / 3) + 50
-      let quality = 1.0, url = outputCanvas.toDataURL('image/jpeg', quality)
+      let quality = 0.92, url = outputCanvas.toDataURL('image/jpeg', quality)
       while (url.length > base64Target && quality > 0.15) {
         quality -= 0.05
         url = outputCanvas.toDataURL('image/jpeg', quality)
