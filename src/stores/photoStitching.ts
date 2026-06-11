@@ -35,6 +35,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const useTitleSize = ref(false)
     const titleFontSize = ref(35)
     const useArtText = ref(false)
+    const useHybridMode = ref(false)
     const artTextUrl = ref('')
     const artTextScale = ref(1)
     const artTextX = ref(0)
@@ -53,6 +54,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       firstLineIndent.value = true
       useTitleSize.value = false
       titleFontSize.value = 35
+      useHybridMode.value = false
       artTextUrl.value = ''
       artTextScale.value = 1
       artTextX.value = 0
@@ -73,6 +75,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       useTitleSize,
       titleFontSize,
       useArtText,
+      useHybridMode,
       artTextUrl,
       artTextScale,
       artTextX,

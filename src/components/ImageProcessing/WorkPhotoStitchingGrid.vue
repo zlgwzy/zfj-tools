@@ -59,6 +59,10 @@ const useArtText = computed({
   get: () => store.useArtText,
   set: (value: boolean) => store.useArtText = value
 })
+const useHybridMode = computed({
+  get: () => store.useHybridMode,
+  set: (value: boolean) => store.useHybridMode = value
+})
 const artTextUrl = computed({
   get: () => store.artTextUrl,
   set: (value: string) => store.artTextUrl = value
@@ -572,6 +576,61 @@ const gridStyle = computed(() => {
             <el-button size="small" @click="artTextUrl = ''">清除模板</el-button>
             <span class="art-text-drag-hint">拖拽艺术字可自由移动位置</span>
           </div>
+          <div class="hybrid-toggle">
+            <span class="hybrid-toggle-label">混合模式：</span>
+            <el-switch v-model="useHybridMode" active-text="开启" inactive-text="关闭" />
+          </div>
+        </div>
+
+        <div v-if="useArtText && useHybridMode" class="text-controls">
+          <div class="textarea-container">
+            <div class="line-numbers">
+              <div v-for="num in lineNumbers" :key="num" class="line-number">{{ num }}</div>
+            </div>
+            <el-input
+              v-model="description"
+              type="textarea"
+              :rows="4"
+              :maxlength="200"
+              show-word-limit
+              resize="none"
+              @input="handleInput"
+              placeholder="请在这里输入工作动态相关内容！（首行默认居中对齐，输入文字限制200字以内，可通过回车键进行换行）"
+              class="text-input"
+            />
+          </div>
+          <div class="text-style-controls">
+            <div class="style-row-main">
+              <div class="font-size-control">
+                <span class="font-size-label">文本字号：</span>
+                <el-slider v-model="fontSize" :min="20" :max="35" :step="1" @input="handleFontSizeChange" class="compact-slider" />
+              </div>
+              <div class="font-family-control">
+                <span class="font-family-label">字体：</span>
+                <el-select v-model="fontFamily" class="font-select" size="small">
+                  <el-option v-for="item in fontOptions" :key="item.value" :label="item.label" :value="item.value" />
+                </el-select>
+              </div>
+            </div>
+            <div class="style-row-sub">
+              <div class="indent-control">
+                <span class="indent-label">行首缩进：</span>
+                <el-switch v-model="firstLineIndent" />
+              </div>
+              <div class="indent-control">
+                <span class="indent-label">启用标题：</span>
+                <el-switch v-model="useTitleSize" />
+              </div>
+              <div v-if="useTitleSize" class="indent-control">
+                <span class="indent-label">标题字号：</span>
+                <el-slider v-model="titleFontSize" :min="26" :max="50" :step="1" class="title-size-slider" />
+              </div>
+              <div class="color-control">
+                <span class="color-label">文本颜色：</span>
+                <el-color-picker v-model="textColor" show-alpha class="color-picker" />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-if="showAnnotation" class="annotation-controls">
@@ -693,6 +752,12 @@ const gridStyle = computed(() => {
             </div>
           </div>
         </div>
+        <div v-if="useArtText && useHybridMode" class="hybrid-text-banner">
+          <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
+            <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
+            <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
+          </div>
+        </div>
         <div class="photo-grid" :style="gridStyle">
           <div
             v-for="(item, index) in imageList"
@@ -796,6 +861,32 @@ const gridStyle = computed(() => {
   padding: 0 20px;
   display: flex;
   align-items: center;
+}
+
+.hybrid-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 8px;
+}
+
+.hybrid-toggle-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.hybrid-text-banner {
+  background-color: #fff;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+}
+
+.hybrid-text-banner .banner-text {
+  flex: none;
+  width: 100%;
 }
 
 .banner-content {
