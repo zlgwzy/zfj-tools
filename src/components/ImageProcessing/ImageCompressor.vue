@@ -233,7 +233,7 @@ const copyToClipboard = async () => {
             </el-button>
             <el-button type="danger" :disabled="!imageUrl" @click="clearAll">清空</el-button>
           </div>
-          <div v-if="compressedUrl" class="clipboard-hint">提示：复制到剪贴板仅支持 PNG 格式，文件大小会较压缩图明显增加。</div>
+          <div class="clipboard-hint">提示：复制到剪贴板仅支持 PNG 格式，文件大小会较压缩图明显增加。</div>
         </div>
 
         <div class="preview-panel">
