@@ -159,58 +159,6 @@ onMounted(async () => {
   overflow-x: hidden;
 }
 
-.changelog-version {
-  margin-top: 12px;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.changelog-version:hover {
-  border-color: rgba(var(--el-color-primary-rgb), 0.3);
-}
-
-.changelog-version summary {
-  cursor: pointer;
-  padding: 8px 16px;
-  background: rgba(var(--el-color-primary-rgb), 0.03);
-  font-weight: 600;
-  font-size: 1.1em;
-  user-select: none;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.changelog-version summary::-webkit-details-marker {
-  display: none;
-}
-
-.changelog-version summary::before {
-  content: '▶';
-  font-size: 12px;
-  transition: transform 0.2s ease;
-  color: var(--el-color-primary);
-}
-
-.changelog-version[open] summary::before {
-  transform: rotate(90deg);
-}
-
-.changelog-version summary:hover {
-  background: rgba(var(--el-color-primary-rgb), 0.06);
-}
-
-.changelog-version[open] summary {
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.changelog-version > :not(summary) {
-  padding: 8px 16px;
-}
-
 .error-container {
   padding: 40px 0;
 }
@@ -364,4 +312,58 @@ onMounted(async () => {
     font-size: 14px;
   }
 }
-</style> 
+</style>
+
+<style>
+.changelog-version {
+  margin-top: 12px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.changelog-version:hover {
+  border-color: rgba(var(--el-color-primary-rgb), 0.3);
+}
+
+.changelog-version summary {
+  cursor: pointer;
+  padding: 8px 16px;
+  background: rgba(var(--el-color-primary-rgb), 0.03);
+  font-weight: 600;
+  font-size: 1.1em;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.changelog-version summary::-webkit-details-marker {
+  display: none;
+}
+
+.changelog-version summary::before {
+  content: '▶';
+  font-size: 12px;
+  transition: transform 0.2s ease;
+  color: var(--el-color-primary);
+}
+
+.changelog-version[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.changelog-version summary:hover {
+  background: rgba(var(--el-color-primary-rgb), 0.06);
+}
+
+.changelog-version[open] summary {
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.changelog-version > :not(summary) {
+  padding: 8px 16px;
+}
+</style>
