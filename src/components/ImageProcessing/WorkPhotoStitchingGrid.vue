@@ -201,14 +201,31 @@ watch(showAnnotation, (val) => {
 // 是否有已上传的图片
 const hasImages = computed(() => imageList.value.some(item => !!item.url))
 
-// 通用的图片压缩函数
+// 通用的图片压缩函数（精细降质 + 分辨率缩放兜底）
 const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number, initialQuality = 1): string => {
   let quality = initialQuality
   let compressedUrl = canvas.toDataURL('image/jpeg', quality)
 
-  while (compressedUrl.length > maxSize && quality > 0.3) {
-    quality -= 0.1
+  while (compressedUrl.length > maxSize && quality > 0.5) {
+    quality -= 0.05
     compressedUrl = canvas.toDataURL('image/jpeg', quality)
+  }
+
+  // 降到最低质量仍然超过目标 → 缩小分辨率
+  let cvs = canvas
+  while (compressedUrl.length > maxSize && cvs.width > 200) {
+    const s = 0.8
+    const tmp = document.createElement('canvas')
+    tmp.width = Math.floor(cvs.width * s)
+    tmp.height = Math.floor(cvs.height * s)
+    tmp.getContext('2d')!.drawImage(cvs, 0, 0, tmp.width, tmp.height)
+    cvs = tmp
+    quality = initialQuality
+    compressedUrl = cvs.toDataURL('image/jpeg', quality)
+    while (compressedUrl.length > maxSize && quality > 0.5) {
+      quality -= 0.05
+      compressedUrl = cvs.toDataURL('image/jpeg', quality)
+    }
   }
 
   return compressedUrl
