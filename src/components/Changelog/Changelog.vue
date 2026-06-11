@@ -329,7 +329,7 @@ onMounted(async () => {
 
 .changelog-version summary {
   cursor: pointer;
-  padding: 8px 16px;
+  padding: 10px 18px;
   background: rgba(var(--el-color-primary-rgb), 0.03);
   font-weight: 600;
   font-size: 1.1em;
@@ -364,6 +364,6 @@ onMounted(async () => {
 }
 
 .changelog-version > :not(summary) {
-  padding: 8px 16px;
+  padding: 10px 18px;
 }
 </style>
