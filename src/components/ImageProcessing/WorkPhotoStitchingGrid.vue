@@ -880,8 +880,7 @@ const gridStyle = computed(() => {
 
 .hybrid-text-banner {
   background-color: #fff;
-  padding: 16px 20px;
-  border-top: 1px solid #eee;
+  padding: 0 50px;
 }
 
 .hybrid-text-banner .banner-text {
