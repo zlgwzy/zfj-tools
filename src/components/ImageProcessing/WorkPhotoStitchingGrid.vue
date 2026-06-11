@@ -202,8 +202,8 @@ watch(showAnnotation, (val) => {
 const hasImages = computed(() => imageList.value.some(item => !!item.url))
 
 // 通用的图片压缩函数
-const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number): string => {
-  let quality = 1
+const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number, initialQuality = 1): string => {
+  let quality = initialQuality
   let compressedUrl = canvas.toDataURL('image/jpeg', quality)
 
   while (compressedUrl.length > maxSize && quality > 0.3) {
@@ -232,7 +232,7 @@ const compressImage = (file: File): Promise<string> => {
         let width = img.width
         let height = img.height
 
-        const maxSize = 1200
+        const maxSize = 2000
         if (width > maxSize || height > maxSize) {
           if (width > height) {
             height = Math.round((height * maxSize) / width)
@@ -252,7 +252,7 @@ const compressImage = (file: File): Promise<string> => {
         }
 
         ctx.drawImage(img, 0, 0, width, height)
-        const compressedUrl = compressImageGeneric(canvas, 2 * 1024 * 1024)
+        const compressedUrl = compressImageGeneric(canvas, 3 * 1024 * 1024, 0.92)
         resolve(compressedUrl)
       }
       img.onerror = () => reject(new Error('Failed to load image'))
