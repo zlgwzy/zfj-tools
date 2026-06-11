@@ -12,6 +12,7 @@ const formatSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB'
   return (bytes / 1024 / 1024).toFixed(2) + 'MB'
 }
+const realSize = (dataUrl: string) => Math.round(dataUrl.split(',')[1].length * 3 / 4)
 
 // 裁剪区域位置（基于图片实际像素坐标）
 const cropX = ref(0)
@@ -182,7 +183,7 @@ const exportCrop = async () => {
     const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
     let quality = 0.92
     let url = canvas.toDataURL(mime, quality)
-    while (url.length > 5 * 1024 * 1024 && quality > 0.2) {
+    while (realSize(url) > 5 * 1024 * 1024 && quality > 0.2) {
       quality -= 0.05
       url = canvas.toDataURL(mime, quality)
     }

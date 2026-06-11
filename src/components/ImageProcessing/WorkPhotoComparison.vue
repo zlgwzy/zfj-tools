@@ -2,6 +2,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 
+const realSize = (dataUrl: string) => Math.round(dataUrl.split(',')[1].length * 3 / 4)
 const img1 = ref('')
 const img2 = ref('')
 const resultUrl = ref('')
@@ -155,7 +156,7 @@ const generateComparison = async () => {
     // 压缩到 500KB 以内
     let quality = 0.92
     let url = canvas.toDataURL('image/jpeg', quality)
-    while (url.length > 1024 * 1024 && quality > 0.15) {
+    while (realSize(url) > 1024 * 1024 && quality > 0.15) {
       quality -= 0.05
       url = canvas.toDataURL('image/jpeg', quality)
     }

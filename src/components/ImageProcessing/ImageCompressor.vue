@@ -16,6 +16,7 @@ const formatSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB'
   return (bytes / 1024 / 1024).toFixed(2) + 'MB'
 }
+const realSize = (dataUrl: string) => Math.round(dataUrl.split(',')[1].length * 3 / 4)
 
 const doCompress = async () => {
   if (!imageUrl.value) return
@@ -46,11 +47,11 @@ const doCompress = async () => {
     const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
     let quality = 0.92
     let url = cvs.toDataURL(mime, quality)
-    while (url.length > 1024 * 1024 && quality > 0.1) {
+    while (realSize(url) > 1024 * 1024 && quality > 0.1) {
       quality -= 0.05
       url = cvs.toDataURL(mime, quality)
     }
-    while (url.length > 1024 * 1024 && cvs.width > 200) {
+    while (realSize(url) > 1024 * 1024 && cvs.width > 200) {
       const s = 0.8
       const tmp = document.createElement('canvas')
       tmp.width = Math.floor(cvs.width * s)
@@ -59,7 +60,7 @@ const doCompress = async () => {
       cvs = tmp
       quality = 0.92
       url = cvs.toDataURL(mime, quality)
-      while (url.length > 1024 * 1024 && quality > 0.1) {
+      while (realSize(url) > 1024 * 1024 && quality > 0.1) {
         quality -= 0.05
         url = cvs.toDataURL(mime, quality)
       }

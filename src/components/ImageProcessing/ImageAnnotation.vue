@@ -144,11 +144,13 @@ const drawAnnotationOnCanvas = () => {
   return canvas
 }
 
+const realSize = (dataUrl: string) => Math.round(dataUrl.split(',')[1].length * 3 / 4)
+
 // 压缩到 5MB 以内（仅调 JPEG 质量，不改变像素尺寸）
 const compressToSize = (canvas: HTMLCanvasElement, maxBytes = 5 * 1024 * 1024): string => {
   let quality = 0.92
   let url = canvas.toDataURL('image/jpeg', quality)
-  while (url.length > maxBytes && quality > 0.2) {
+  while (realSize(url) > maxBytes && quality > 0.2) {
     quality -= 0.05
     url = canvas.toDataURL('image/jpeg', quality)
   }
