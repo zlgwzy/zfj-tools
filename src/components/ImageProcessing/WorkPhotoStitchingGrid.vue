@@ -63,6 +63,16 @@ const useHybridMode = computed({
   get: () => store.useHybridMode,
   set: (value: boolean) => store.useHybridMode = value
 })
+const displayMode = computed({
+  get: () => {
+    if (!useArtText.value) return 'text'
+    return useHybridMode.value ? 'hybrid' : 'art'
+  },
+  set: (val: string) => {
+    useArtText.value = val !== 'text'
+    useHybridMode.value = val === 'hybrid'
+  }
+})
 const artTextUrl = computed({
   get: () => store.artTextUrl,
   set: (value: string) => store.artTextUrl = value
@@ -348,15 +358,10 @@ const handleImageUpload = async (e: Event, index: number) => {
   ;(e.target as HTMLInputElement).value = ''
 }
 
-// 处理图片缩放
-const handleScaleChange = (index: number, value: number | number[]) => {
-  imageList.value[index].scale = Array.isArray(value) ? value[0] : value
-}
-
 // 导出图片
 const exportImage = async () => {
   // 艺术字模式下未上传艺术字时阻止导出
-  if (useArtText.value && !artTextUrl.value) {
+  if (displayMode.value !== 'text' && !artTextUrl.value) {
     ElMessage.warning('请先上传艺术字图片')
     return
   }
@@ -477,14 +482,14 @@ const gridStyle = computed(() => {
       <div class="control-panel">
         <div class="mode-switch">
           <span class="mode-label">显示模式：</span>
-          <el-switch
-            v-model="useArtText"
-            active-text="艺术字"
-            inactive-text="文字"
-          />
+          <el-radio-group v-model="displayMode" class="mode-radio-group">
+            <el-radio-button value="text">文字</el-radio-button>
+            <el-radio-button value="art">艺术字</el-radio-button>
+            <el-radio-button value="hybrid">混合模式</el-radio-button>
+          </el-radio-group>
         </div>
 
-        <div v-if="!useArtText" class="text-controls">
+        <div v-if="displayMode === 'text'" class="text-controls">
           <div class="textarea-container">
             <div class="line-numbers">
               <div v-for="num in lineNumbers" :key="num" class="line-number">{{ num }}</div>
@@ -546,7 +551,7 @@ const gridStyle = computed(() => {
           </div>
         </div>
 
-        <div v-if="useArtText" class="art-text-controls">
+        <div v-if="displayMode !== 'text'" class="art-text-controls">
           <div class="template-section">
             <span class="template-section-label">选择艺术字模板：</span>
             <div class="template-grid">
@@ -576,13 +581,9 @@ const gridStyle = computed(() => {
             <el-button size="small" @click="artTextUrl = ''">清除模板</el-button>
             <span class="art-text-drag-hint">拖拽艺术字可自由移动位置</span>
           </div>
-          <div class="hybrid-toggle">
-            <span class="hybrid-toggle-label">混合模式：</span>
-            <el-switch v-model="useHybridMode" active-text="开启" inactive-text="关闭" />
-          </div>
         </div>
 
-        <div v-if="useArtText && useHybridMode" class="text-controls">
+        <div v-if="displayMode === 'hybrid'" class="text-controls">
           <div class="textarea-container">
             <div class="line-numbers">
               <div v-for="num in lineNumbers" :key="num" class="line-number">{{ num }}</div>
@@ -728,17 +729,17 @@ const gridStyle = computed(() => {
             </el-image>
           </div>
           <div class="banner-content">
-            <template v-if="!useArtText">
+            <template v-if="displayMode === 'text'">
               <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
                 <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
                 <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
               </div>
             </template>
-            <div v-if="useArtText && !artTextUrl" class="banner-art-text-placeholder">
+            <div v-if="displayMode !== 'text' && !artTextUrl" class="banner-art-text-placeholder">
               <span>请上传艺术字</span>
             </div>
             <div
-              v-if="useArtText && artTextUrl"
+              v-if="displayMode !== 'text' && artTextUrl"
               class="art-text-overlay"
               :style="{
                 left: `calc(50% + ${artTextX}px)`,
@@ -752,7 +753,7 @@ const gridStyle = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="useArtText && useHybridMode" class="hybrid-text-banner">
+        <div v-if="displayMode === 'hybrid'" class="hybrid-text-banner">
           <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
             <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
             <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
