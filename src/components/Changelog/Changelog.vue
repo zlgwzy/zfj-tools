@@ -17,7 +17,7 @@ onMounted(async () => {
     loading.value = true
     error.value = false
     const response = await axios.get('/changelog/zfj-tools-changelog.md')
-    const sections = response.data.split(/\n---\n/)
+    const sections = response.data.split(/^---\r?$/m)
     // 最新版本默认展开，其余版本折叠
     const firstSection = marked(sections[0]) as string
     const restSections = sections.slice(1).map((section: string) => {
