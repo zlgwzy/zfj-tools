@@ -201,19 +201,22 @@ watch(showAnnotation, (val) => {
 // 是否有已上传的图片
 const hasImages = computed(() => imageList.value.some(item => !!item.url))
 
+// DataURL 的实际二进制大小（Base64 → 字节）
+const realSize = (dataUrl: string) => Math.round(dataUrl.split(',')[1].length * 3 / 4)
+
 // 通用的图片压缩函数（精细降质 + 分辨率缩放兜底）
 const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number, initialQuality = 1): string => {
   let quality = initialQuality
   let compressedUrl = canvas.toDataURL('image/jpeg', quality)
 
-  while (compressedUrl.length > maxSize && quality > 0.5) {
+  while (realSize(compressedUrl) > maxSize && quality > 0.5) {
     quality -= 0.05
     compressedUrl = canvas.toDataURL('image/jpeg', quality)
   }
 
   // 降到最低质量仍然超过目标 → 缩小分辨率
   let cvs = canvas
-  while (compressedUrl.length > maxSize && cvs.width > 200) {
+  while (realSize(compressedUrl) > maxSize && cvs.width > 200) {
     const s = 0.8
     const tmp = document.createElement('canvas')
     tmp.width = Math.floor(cvs.width * s)
@@ -222,7 +225,7 @@ const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number, initia
     cvs = tmp
     quality = initialQuality
     compressedUrl = cvs.toDataURL('image/jpeg', quality)
-    while (compressedUrl.length > maxSize && quality > 0.5) {
+    while (realSize(compressedUrl) > maxSize && quality > 0.5) {
       quality -= 0.05
       compressedUrl = cvs.toDataURL('image/jpeg', quality)
     }
@@ -361,7 +364,7 @@ const exportImage = async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
       const canvas = await html2canvas(element, {
         useCORS: true,
-        scale: 2,
+        scale: 3,
         backgroundColor: null
       })
 
