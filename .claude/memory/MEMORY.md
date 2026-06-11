@@ -1,0 +1,4 @@
+- [Commit 规范：中文 + Conventional Commits](feedback_commit_style.md) — 修改代码后自动提交，用中文写规范化的 commit message
+- [Git 工作流：单独提交、不推送、用户决定合并](git_workflow.md) — 每次改动独立提交到本地，不推送远端，由用户控制合并和推送
+- [组件一致性：同目录组件互相参考](cross_component_consistency.md) — 同一目录下的组件应参考彼此的样式布局、代码实现，保持风格统一
+- [发布新版本流程](release_workflow.md) — 更新日志→README→打标签→推送，用户说「发布新版本」时执行
