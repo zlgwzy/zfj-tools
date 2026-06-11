@@ -668,14 +668,29 @@ const gridStyle = computed(() => {
               </template>
             </el-image>
           </div>
-          <template v-if="!useArtText">
-            <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
-              <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
-              <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
+          <div class="banner-content">
+            <template v-if="!useArtText">
+              <div class="banner-text" :style="{ fontSize: `${fontSize}px`, color: textColor, fontFamily: fontFamily }">
+                <div :class="['first-line', useTitleSize ? 'title-active' : '']" :style="{ textAlign: useTitleSize ? 'center' : (firstLineAlign as 'center' | 'left'), textIndent: useTitleSize ? '0' : (firstLineIndent ? '2em' : '0'), fontSize: useTitleSize ? titleFontSize + 'px' : '' }">{{ firstLine }}</div>
+                <div class="other-lines" :style="{ textIndent: firstLineIndent ? '2em' : '0' }">{{ otherLines }}</div>
+              </div>
+            </template>
+            <div v-if="useArtText && !artTextUrl" class="banner-art-text-placeholder">
+              <span>请上传艺术字</span>
             </div>
-          </template>
-          <div v-if="useArtText && !artTextUrl" class="banner-art-text-placeholder">
-            <span>请上传艺术字</span>
+            <div
+              v-if="useArtText && artTextUrl"
+              class="art-text-overlay"
+              :style="{
+                left: `calc(50% + ${artTextX}px)`,
+                top: `calc(50% + ${artTextY}px)`,
+                transform: `translate(-50%, -50%) scale(${artTextScale})`,
+                cursor: isDraggingArtText ? 'grabbing' : 'grab'
+              }"
+              @mousedown="onArtTextMouseDown"
+            >
+              <img :src="artTextUrl" class="art-text-overlay-img" draggable="false" />
+            </div>
           </div>
         </div>
         <div class="photo-grid" :style="gridStyle">
@@ -736,20 +751,6 @@ const gridStyle = computed(() => {
             />
           </div>
         </div>
-        <!-- 艺术字浮层 -->
-        <div
-          v-if="useArtText && artTextUrl"
-          class="art-text-overlay"
-          :style="{
-            left: artTextX + 'px',
-            top: artTextY + 'px',
-            transform: `scale(${artTextScale})`,
-            cursor: isDraggingArtText ? 'grabbing' : 'grab'
-          }"
-          @mousedown="onArtTextMouseDown"
-        >
-          <img :src="artTextUrl" class="art-text-overlay-img" draggable="false" />
-        </div>
       </div>
     </el-card>
   </div>
@@ -795,6 +796,12 @@ const gridStyle = computed(() => {
   padding: 0 20px;
   display: flex;
   align-items: center;
+}
+
+.banner-content {
+  flex: 1;
+  position: relative;
+  min-height: 80px;
 }
 
 .banner-logo {
@@ -1231,7 +1238,7 @@ const gridStyle = computed(() => {
   z-index: 10;
   line-height: 0;
   user-select: none;
-  transform-origin: top left;
+  transform-origin: center center;
   will-change: transform;
 }
 

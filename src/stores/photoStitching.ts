@@ -37,8 +37,8 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const useArtText = ref(false)
     const artTextUrl = ref('')
     const artTextScale = ref(1)
-    const artTextX = ref(20)
-    const artTextY = ref(60)
+    const artTextX = ref(0)
+    const artTextY = ref(16)
     const annotationFontSize = ref(20)
     const annotationFontFamily = ref('STHeiti, SimHei')
     const annotationColor = ref('#ff0000')
@@ -55,8 +55,8 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       titleFontSize.value = 35
       artTextUrl.value = ''
       artTextScale.value = 1
-      artTextX.value = 20
-      artTextY.value = 60
+      artTextX.value = 0
+      artTextY.value = 16
       annotationFontSize.value = 25
       annotationFontFamily.value = 'STHeiti, SimHei'
       annotationColor.value = '#ff0000'
