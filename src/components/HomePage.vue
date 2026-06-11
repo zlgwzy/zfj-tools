@@ -70,7 +70,7 @@ onMounted(() => {
               <span>图片裁剪（4:3）</span>
             </el-menu-item>
             <el-menu-item index="2-7">
-              <span>图片压缩（≤500KB）</span>
+              <span>图片压缩（≤1MB）</span>
             </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="3">
