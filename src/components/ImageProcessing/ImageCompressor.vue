@@ -8,6 +8,7 @@ const fileSize = ref(0)
 const compressedUrl = ref('')
 const compressedSize = ref(0)
 const isProcessing = ref(false)
+const isCopying = ref(false)
 const outputFormat = ref('jpeg') // 'jpeg' 或 'png'
 
 const formatSize = (bytes: number) => {
@@ -141,6 +142,49 @@ const clearAll = () => {
   compressedUrl.value = ''
   compressedSize.value = 0
 }
+
+const copyToClipboard = async () => {
+  if (!compressedUrl.value) return
+  isCopying.value = true
+  try {
+    const img = new Image()
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve()
+      img.onerror = reject
+      img.src = compressedUrl.value
+    })
+
+    let cvs = document.createElement('canvas')
+    cvs.width = img.naturalWidth
+    cvs.height = img.naturalHeight
+    const ctx = cvs.getContext('2d')!
+    ctx.drawImage(img, 0, 0)
+
+    // 参考其他组件：限制最长边为 1600px，防止大图复制失败
+    const maxClip = 1600
+    if (cvs.width > maxClip || cvs.height > maxClip) {
+      const s = maxClip / Math.max(cvs.width, cvs.height)
+      const tmp = document.createElement('canvas')
+      tmp.width = Math.floor(cvs.width * s)
+      tmp.height = Math.floor(cvs.height * s)
+      const tctx = tmp.getContext('2d')!
+      tctx.imageSmoothingEnabled = true
+      tctx.imageSmoothingQuality = 'high'
+      tctx.drawImage(cvs, 0, 0, tmp.width, tmp.height)
+      cvs = tmp
+    }
+
+    const blob = await new Promise<Blob>(resolve =>
+      cvs.toBlob(b => resolve(b!), 'image/png')
+    )
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+    ElMessage.success(`已复制到剪贴板（${formatSize(blob.size)}）`)
+  } catch {
+    ElMessage.error('复制失败，请重试')
+  } finally {
+    isCopying.value = false
+  }
+}
 </script>
 
 <template>
@@ -181,12 +225,15 @@ const clearAll = () => {
           </div>
 
           <div class="action-row">
+            <el-button type="success" @click="copyToClipboard" :disabled="!compressedUrl" :loading="isCopying">
+              复制到剪贴板
+            </el-button>
             <el-button type="primary" @click="download" :disabled="!compressedUrl">
               导出图片
             </el-button>
             <el-button type="danger" :disabled="!imageUrl" @click="clearAll">清空</el-button>
           </div>
-          <div class="clipboard-hint">提示：由于浏览器机制限制，复制到剪贴板仅支持 PNG 格式，文件大小会较原图明显增加，故不提供复制到剪贴板功能，请点击导出图片。</div>
+          <div v-if="compressedUrl" class="clipboard-hint">提示：复制到剪贴板仅支持 PNG 格式，文件大小会较压缩图明显增加。</div>
         </div>
 
         <div class="preview-panel">
@@ -206,168 +253,6 @@ const clearAll = () => {
     </el-card>
   </div>
 </template>
-
-<style scoped>
-.image-compressor {
-  padding: 20px;
-}
-
-.main-card {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.card-header {
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.content-layout {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.control-panel {
-  width: 240px;
-  flex-shrink: 0;
-}
-
-.upload-area {
-  border: 2px dashed #dcdfe6;
-  border-radius: 8px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #fafafa;
-  color: #909399;
-}
-
-.upload-area:hover {
-  border-color: #409eff;
-  background: #f0f9ff;
-  color: #409eff;
-}
-
-.upload-area .el-icon {
-  font-size: 28px;
-  display: block;
-  margin: 0 auto;
-  margin-bottom: 6px;
-}
-
-.upload-area span {
-  display: block;
-  margin: 0 auto;
-  font-size: 14px;
-}
-
-.upload-area .hint {
-  font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 4px;
-}
-
-.info-section {
-  margin-top: 16px;
-  padding: 12px;
-  background: #f5f7fa;
-  border-radius: 8px;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 8px;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  color: #909399;
-}
-
-.info-value {
-  color: #303133;
-  font-weight: 500;
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.action-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 16px;
-  align-items: center;
-}
-
-.action-row :deep(.el-button) {
-  width: 100%;
-  max-width: 200px;
-  margin-left: 0 !important;
-}
-
-.clipboard-hint {
-  margin-top: 10px;
-  padding: 8px 10px;
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.5;
-  background: #fef6ec;
-  border-left: 3px solid #e6a23c;
-  border-radius: 4px;
-  text-align: left;
-}
-
-.preview-panel {
-  flex: 1;
-  min-width: 0;
-}
-
-.preview-box {
-  margin-bottom: 16px;
-}
-
-.preview-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.preview-img {
-  max-width: 100%;
-  max-height: 70vh;
-  display: block;
-}
-
-.preview-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 350px;
-  border: 2px dashed #dcdfe6;
-  border-radius: 8px;
-  color: #c0c4cc;
-}
-
-.preview-placeholder .el-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
-
-.preview-placeholder span {
-  font-size: 16px;
-}
-</style>
 
 <style scoped>
 .image-compressor {
