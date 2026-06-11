@@ -24,9 +24,9 @@ onMounted(async () => {
       const html = marked(section) as string
       const h2Match = html.match(/<h2[^>]*>.*?<\/h2>/)
       if (h2Match) {
-        const summary = h2Match[0]
+        const h2Text = h2Match[0].replace(/<\/?h2[^>]*>/g, '')
         const content = html.replace(h2Match[0], '')
-        return `<details class="changelog-version"><summary>${summary}</summary>${content}</details>`
+        return `<details class="changelog-version"><summary>${h2Text}</summary>${content}</details>`
       }
       return `<details class="changelog-version"><summary>历史版本</summary>${html}</details>`
     }).join('')
@@ -331,8 +331,8 @@ onMounted(async () => {
   cursor: pointer;
   padding: 10px 18px;
   background: rgba(var(--el-color-primary-rgb), 0.03);
-  font-weight: 600;
-  font-size: 1.1em;
+  font-weight: 700;
+  font-size: 1.8em;
   user-select: none;
   list-style: none;
   display: flex;
