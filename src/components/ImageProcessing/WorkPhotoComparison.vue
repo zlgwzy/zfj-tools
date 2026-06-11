@@ -69,7 +69,7 @@ const compressImage = (file: File): Promise<string> => {
         const cvs = document.createElement('canvas')
         cvs.width = w; cvs.height = h
         cvs.getContext('2d')!.drawImage(img, 0, 0, w, h)
-        resolve(cvs.toDataURL('image/jpeg', 0.85))
+        resolve(cvs.toDataURL('image/jpeg', 0.92))
       }
       img.onerror = reject
       img.src = reader.result as string

@@ -44,22 +44,22 @@ const doCompress = async () => {
 
     const mime = outputFormat.value === 'png' ? 'image/png' : 'image/jpeg'
     const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
-    let quality = 0.85
+    let quality = 0.92
     let url = cvs.toDataURL(mime, quality)
-    while (url.length > 500 * 1024 && quality > 0.1) {
+    while (url.length > 1024 * 1024 && quality > 0.1) {
       quality -= 0.05
       url = cvs.toDataURL(mime, quality)
     }
-    while (url.length > 500 * 1024 && cvs.width > 200) {
+    while (url.length > 1024 * 1024 && cvs.width > 200) {
       const s = 0.8
       const tmp = document.createElement('canvas')
       tmp.width = Math.floor(cvs.width * s)
       tmp.height = Math.floor(cvs.height * s)
       tmp.getContext('2d')!.drawImage(cvs, 0, 0, tmp.width, tmp.height)
       cvs = tmp
-      quality = 0.85
+      quality = 0.92
       url = cvs.toDataURL(mime, quality)
-      while (url.length > 500 * 1024 && quality > 0.1) {
+      while (url.length > 1024 * 1024 && quality > 0.1) {
         quality -= 0.05
         url = cvs.toDataURL(mime, quality)
       }
@@ -192,7 +192,7 @@ const copyToClipboard = async () => {
     <el-card class="main-card">
       <template #header>
         <div class="card-header">
-          <span>图片压缩（≤500KB）</span>
+          <span>图片压缩（≤1MB）</span>
         </div>
       </template>
 

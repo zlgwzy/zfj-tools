@@ -52,7 +52,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const generateId = () => Math.random().toString(36).slice(2, 10)
 
 // 压缩图片（小于 1MB 不压缩直接读取）
-const compressImage = (file: File, maxSize: number = 2048): Promise<string> => {
+const compressImage = (file: File, maxSize: number = 2000): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (file.size < 3 * 1024 * 1024) {
       const reader = new FileReader()
