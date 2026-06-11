@@ -46,9 +46,16 @@ const removeImg = (idx: number) => {
 onMounted(() => document.addEventListener('paste', handlePaste))
 onUnmounted(() => document.removeEventListener('paste', handlePaste))
 
-// 上传时压缩图片到最长边 2000px
+// 上传时压缩图片到最长边 2000px（小于 1MB 不压缩直接读取）
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
+    if (file.size < 3 * 1024 * 1024) {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+      return
+    }
     const reader = new FileReader()
     reader.onload = () => {
       const img = new Image()

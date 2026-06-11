@@ -214,9 +214,16 @@ const compressImageGeneric = (canvas: HTMLCanvasElement, maxSize: number): strin
   return compressedUrl
 }
 
-// 压缩图片
+// 压缩图片（小于 1MB 不压缩直接读取）
 const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
+    if (file.size < 3 * 1024 * 1024) {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+      return
+    }
     const reader = new FileReader()
     reader.onload = (e) => {
       const img = new Image()

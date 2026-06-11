@@ -51,9 +51,16 @@ const fileInput = ref<HTMLInputElement | null>(null)
 // 生成唯一ID
 const generateId = () => Math.random().toString(36).slice(2, 10)
 
-// 压缩图片
+// 压缩图片（小于 1MB 不压缩直接读取）
 const compressImage = (file: File, maxSize: number = 2048): Promise<string> => {
   return new Promise((resolve, reject) => {
+    if (file.size < 3 * 1024 * 1024) {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+      return
+    }
     const img = new Image()
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d', { willReadFrequently: true })!
