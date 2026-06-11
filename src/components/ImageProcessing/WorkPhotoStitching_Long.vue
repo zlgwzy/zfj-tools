@@ -12,7 +12,7 @@ interface ImageItem {
 
 const annotationFontSize = ref(25)
 const annotationFontFamily = ref('STHeiti, SimHei')
-const annotationColor = ref('#ffffff')
+const annotationColor = ref('#ff0000')
 
 const fontOptions = [
   { value: 'PingFang SC, Microsoft YaHei', label: '微软雅黑' },

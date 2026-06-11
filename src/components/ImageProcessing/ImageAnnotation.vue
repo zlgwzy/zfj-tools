@@ -9,7 +9,7 @@ const annotation = ref('')
 const annotationPos = ref('bottom-center')
 const fontSize = ref(30)
 const fontFamily = ref('STHeiti, SimHei')
-const textColor = ref('#ffffff')
+const textColor = ref('#ff0000')
 const isExporting = ref(false)
 const isCopying = ref(false)
 

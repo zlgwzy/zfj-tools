@@ -41,7 +41,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
     const artTextY = ref(60)
     const annotationFontSize = ref(20)
     const annotationFontFamily = ref('STHeiti, SimHei')
-    const annotationColor = ref('#ffffff')
+    const annotationColor = ref('#ff0000')
     const imageList = ref<ImageItem[]>(createImageList(gridType))
 
     const resetState = () => {
@@ -59,7 +59,7 @@ export function usePhotoStitchingStore(gridType: 2 | 4 | 6) {
       artTextY.value = 60
       annotationFontSize.value = 25
       annotationFontFamily.value = 'STHeiti, SimHei'
-      annotationColor.value = '#ffffff'
+      annotationColor.value = '#ff0000'
       imageList.value = createImageList(gridType)
     }
 

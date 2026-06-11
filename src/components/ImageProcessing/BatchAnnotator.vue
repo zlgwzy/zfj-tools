@@ -29,7 +29,7 @@ const onDrop = (targetIdx: number) => {
 // 标注样式参数（参考图片标注模块）
 const annotationPos = ref('bottom-right')
 const fontFamily = ref('STHeiti, SimHei')
-const textColor = ref('#ffffff')
+const textColor = ref('#ff0000')
 
 const positionOptions = [
   { value: 'top-left', label: '左上角' }, { value: 'top-center', label: '顶部居中' },
