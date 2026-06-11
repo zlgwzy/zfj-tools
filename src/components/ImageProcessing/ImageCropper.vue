@@ -204,7 +204,7 @@ const copyToClipboard = async () => {
   isCopying.value = true
   try {
     let canvas = getCroppedCanvas()
-    const maxClip = 1600
+    const maxClip = 2000
     if (canvas.width > maxClip || canvas.height > maxClip) {
       const s = maxClip / Math.max(canvas.width, canvas.height)
       const tmp = document.createElement('canvas')

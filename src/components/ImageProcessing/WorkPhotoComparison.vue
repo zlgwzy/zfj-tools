@@ -187,7 +187,7 @@ const copyToClipboard = async () => {
     cvs.width = img.width; cvs.height = img.height
     cvs.getContext('2d')!.drawImage(img, 0, 0)
     // 缩放到最长边 1200px 后再转 PNG
-    const maxClip = 1600
+    const maxClip = 2000
     if (cvs.width > maxClip || cvs.height > maxClip) {
       const s = maxClip / Math.max(cvs.width, cvs.height)
       const tmp = document.createElement('canvas')

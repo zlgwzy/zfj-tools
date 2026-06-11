@@ -182,7 +182,7 @@ const copyToClipboard = async () => {
   try {
     let canvas = drawAnnotationOnCanvas()
     // 等比缩放到最长边 2000px，大幅提升速度
-    const maxClip = 1600
+    const maxClip = 2000
     if (canvas.width > maxClip || canvas.height > maxClip) {
       const s = maxClip / Math.max(canvas.width, canvas.height)
       const tmp = document.createElement('canvas')

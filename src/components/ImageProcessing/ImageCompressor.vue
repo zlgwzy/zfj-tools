@@ -161,7 +161,7 @@ const copyToClipboard = async () => {
     ctx.drawImage(img, 0, 0)
 
     // 参考其他组件：限制最长边为 1600px，防止大图复制失败
-    const maxClip = 1600
+    const maxClip = 2000
     if (cvs.width > maxClip || cvs.height > maxClip) {
       const s = maxClip / Math.max(cvs.width, cvs.height)
       const tmp = document.createElement('canvas')
