@@ -46,7 +46,7 @@ onMounted(async () => {
     <el-card class="changelog-card" v-loading="loading">
       <template #header>
         <div class="card-header">
-          <h2><el-icon><Document /> </el-icon> 更新日志</h2>
+          <h2><el-icon><Document /> </el-icon> 执法局工具箱更新日志</h2>
         </div>
       </template>
       
@@ -332,7 +332,7 @@ onMounted(async () => {
   padding: 10px 18px;
   background: rgba(var(--el-color-primary-rgb), 0.03);
   font-weight: 700;
-  font-size: 1.8em;
+  font-size: 1.4em;
   user-select: none;
   list-style: none;
   display: flex;
