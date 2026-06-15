@@ -40,6 +40,7 @@ const scale = computed(() => {
 const handleUpload = (e: Event) => {
   const files = (e.target as HTMLInputElement).files
   if (!files || files.length === 0) return
+  clearAll()
   const file = files[0]
   if (!file.type.startsWith('image/')) {
     ElMessage.warning('请上传图片格式文件')
