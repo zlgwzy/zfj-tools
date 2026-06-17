@@ -16,7 +16,6 @@ const onBoxDragStart = (idx: number) => { dragIdx.value = idx }
 const onBoxDrop = (idx: number) => {
   if (dragIdx.value === idx) return
   const tmp = img1.value; img1.value = img2.value; img2.value = tmp
-  if (resultUrl.value) generateComparison()
 }
 
 // 剪贴板粘贴：自动粘贴到空白框，全满时提示
