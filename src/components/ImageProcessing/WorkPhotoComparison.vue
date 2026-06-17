@@ -106,7 +106,7 @@ const generateComparison = async () => {
     })
     const [im1, im2] = await Promise.all([load(img1.value), load(img2.value)])
 
-    const gap = 10
+    const gap = 0
     let canvas, ctx, cx1, cy1, cx2, cy2
 
     if (orientation.value === 'horizontal') {
