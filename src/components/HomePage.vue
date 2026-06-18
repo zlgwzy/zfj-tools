@@ -10,6 +10,7 @@ import BatchAnnotator from './ImageProcessing/BatchAnnotator.vue'
 import WorkPhotoComparison from './ImageProcessing/WorkPhotoComparison.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
+import UsageGuide from './UsageGuide.vue'
 
 // 定义当前激活的菜单项索引
 const activeIndex = ref('1')
@@ -94,6 +95,15 @@ onMounted(() => {
             <el-icon><location /></el-icon>
             <a href="?tab=5" @click.prevent="handleSelect('5')">绵竹地图</a>
           </el-menu-item>
+          <el-sub-menu index="7">
+            <template #title>
+              <el-icon><reading /></el-icon>
+              <span>操作指南</span>
+            </template>
+            <el-menu-item index="7-1">
+              <span>图片处理功能使用说明</span>
+            </el-menu-item>
+          </el-sub-menu>
           <el-menu-item index="6">
             <el-icon><document /></el-icon>
             <span>更新日志</span>
@@ -147,6 +157,9 @@ onMounted(() => {
           <MianzhuMap v-if="activeIndex === '5'" />
 
           <BatchAnnotator v-if="activeIndex === '8-1'" />
+
+          <!-- 操作指南 -->
+          <UsageGuide v-if="activeIndex === '7-1'" />
 
           <!-- 更新日志 -->
           <Changelog v-if="activeIndex === '6'" />
