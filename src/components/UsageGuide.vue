@@ -112,13 +112,11 @@ const features = [
     desc: '将图片自动压缩至1MB以内，方便上传和传输。',
     steps: [
       { icon: 'Upload', text: '上传图片或 Ctrl+V 粘贴' },
-      { icon: 'MagicStick', text: '自动压缩：最长边超2000px自动缩小，逐步调整质量' },
-      { icon: 'Setting', text: '必要时缩小分辨率（0.8倍缩放后继续降质）' },
+      { icon: 'MagicStick', text: '自动压缩，调整至1MB以内' },
       { icon: 'Download', text: '导出图片或复制到剪贴板PNG' },
     ],
     tips: [
-      '初始压缩质量0.92，最低降至0.1',
-      '降质后仍超过1MB会缩小尺寸，直至≥200px为止',
+      '上传后自动压缩到1MB以内，无需手动调整',
       '复制到剪贴板仅支持PNG格式，文件会较压缩图明显增大',
     ]
   },
