@@ -820,6 +820,7 @@ const gridStyle = computed(() => {
                   <Plus />
                 </el-icon>
                 <span>点击上传图片</span>
+                <span class="upload-hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
               </div>
             </div>
             <el-button
@@ -1001,6 +1002,17 @@ const gridStyle = computed(() => {
   width: 24px;
   height: 24px;
   --el-button-size: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photo-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.photo-container.is-exporting .delete-btn,
+.photo-container.is-exporting .photo-item:hover .delete-btn {
+  opacity: 0;
 }
 
 .photo-item.is-dragging {
@@ -1060,6 +1072,12 @@ const gridStyle = computed(() => {
 .upload-placeholder span {
   font-size: 14px;
   line-height: 1.5;
+}
+
+.upload-hint {
+  font-size: 12px !important;
+  color: #c0c4cc;
+  margin-top: 4px;
 }
 
 .grid-image {
