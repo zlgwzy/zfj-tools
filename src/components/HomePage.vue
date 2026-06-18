@@ -101,7 +101,7 @@ onMounted(() => {
               <span>操作指南</span>
             </template>
             <el-menu-item index="7-1">
-              <span>图片处理功能使用说明</span>
+              <span>图片处理功能</span>
             </el-menu-item>
           </el-sub-menu>
           <el-menu-item index="6">

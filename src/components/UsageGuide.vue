@@ -108,7 +108,7 @@ const features = [
   },
   {
     name: '图片压缩（≤1MB）',
-    icon: 'Compress',
+    icon: 'ScaleToOriginal',
     desc: '将图片自动压缩至1MB以内，方便上传和传输。',
     steps: [
       { icon: 'Upload', text: '上传图片或 Ctrl+V 粘贴' },
