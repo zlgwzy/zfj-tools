@@ -13,7 +13,7 @@ const features = [
       { icon: 'Edit', text: '输入工作动态文本（最多200字，支持4行），调整字号、字体、颜色' },
       { icon: 'MagicStick', text: '可选艺术字模式，选择模板后拖拽调整位置和缩放' },
       { icon: 'PictureFilled', text: '可选开启图片标注，每张图单独设置标注文字' },
-      { icon: 'Download', text: '导出图片（3倍高清JPEG）或复制到剪贴板（PNG）' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: [
       '艺术字模式下必须先选择模板才能导出',
@@ -44,7 +44,7 @@ const features = [
       { icon: 'Operation', text: '选择排列方向（横向/纵向），调整图片间距' },
       { icon: 'FullScreen', text: '可选开启统一尺寸，自定义统一宽度' },
       { icon: 'EditPen', text: '每张图可单独设置标注文字，调整字号、字体、颜色' },
-      { icon: 'Download', text: '导出JPEG或复制到剪贴板PNG' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: []
   },
@@ -57,7 +57,7 @@ const features = [
       { icon: 'Sort', text: '拖拽图片可交换位置，切换后自动重新生成' },
       { icon: 'Operation', text: '选择排列方向（横向并排/纵向堆叠）' },
       { icon: 'MagicStick', text: '点击"生成对比图"，自动标注红色标签' },
-      { icon: 'Download', text: '导出JPEG或复制到剪贴板PNG' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: [
       '切换方向或更换图片后自动重新生成',
@@ -72,7 +72,7 @@ const features = [
       { icon: 'Edit', text: '输入标注文字（最多200字），支持回车换行' },
       { icon: 'Operation', text: '选择位置（7个位置可选）' },
       { icon: 'Setting', text: '调整样式：字号20~50px、5种字体、自定义颜色' },
-      { icon: 'Download', text: '导出JPEG（≤5MB）或复制到剪贴板PNG' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: [
       '文字超出可用宽度时自动折行',
@@ -87,7 +87,7 @@ const features = [
       { icon: 'Upload', text: '上传图片或 Ctrl+V 粘贴' },
       { icon: 'Rank', text: '拖拽裁剪框移动位置，拖拽四角缩放大小' },
       { icon: 'Operation', text: '裁剪框保持4:3固定比例，最小80×60px' },
-      { icon: 'Download', text: '导出JPEG/PNG（与原图格式一致）或复制到剪贴板PNG' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: [
       '拖动裁剪框时保持4:3固定比例，不可自由变形',
@@ -102,7 +102,7 @@ const features = [
     steps: [
       { icon: 'Upload', text: '上传图片或 Ctrl+V 粘贴' },
       { icon: 'MagicStick', text: '自动压缩，调整至1MB以内' },
-      { icon: 'Download', text: '导出图片或复制到剪贴板PNG' },
+      { icon: 'Download', text: '导出图片或复制到剪贴板' },
     ],
     tips: [
       '上传后自动压缩到1MB以内，无需手动调整',
@@ -181,7 +181,7 @@ const features = [
               </div>
             </div>
 
-            <div class="feature-tips">
+            <div v-if="features[currentFeature].tips.length > 0" class="feature-tips">
               <h3 class="section-title">
                 <el-icon><WarningFilled /></el-icon>
                 注意事项
