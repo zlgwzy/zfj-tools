@@ -822,6 +822,16 @@ const gridStyle = computed(() => {
                 <span>点击上传图片</span>
               </div>
             </div>
+            <el-button
+              v-if="item.url"
+              class="delete-btn"
+              size="small"
+              type="danger"
+              circle
+              @click.stop="store.imageList[index].url = ''"
+            >
+              <el-icon><Close /></el-icon>
+            </el-button>
             <div
               v-if="item.annotation"
               class="annotation-label"
@@ -981,6 +991,16 @@ const gridStyle = computed(() => {
   user-select: none;
   cursor: move;
   transition: all 0.2s ease;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 5;
+  width: 24px;
+  height: 24px;
+  --el-button-size: 24px;
 }
 
 .photo-item.is-dragging {
