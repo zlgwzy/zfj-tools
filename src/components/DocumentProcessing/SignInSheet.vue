@@ -153,7 +153,7 @@ const exportPDF = async () => {
 
 <style scoped>
 .signin-wrapper {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -225,7 +225,7 @@ const exportPDF = async () => {
 
 .a4-paper {
   width: 100%;
-  max-width: 720px;
+  max-width: 960px;
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 2px;
