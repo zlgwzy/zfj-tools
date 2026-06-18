@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import html2canvas from 'html2canvas'
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { usePhotoStitchingStore } from '@/stores/photoStitching'
 import artTextImg from '@/assets/art_fonts/美酒名城画境绵竹-执法版.png'
@@ -357,6 +357,34 @@ const handleImageUpload = async (e: Event, index: number) => {
 
   ;(e.target as HTMLInputElement).value = ''
 }
+
+// 剪贴板粘贴图片
+const handlePaste = async (event: ClipboardEvent) => {
+  const items = event.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const blob = item.getAsFile()
+      if (!blob) continue
+      try {
+        const url = await compressImage(blob)
+        // 填充到第一个空位
+        const idx = imageList.value.findIndex(item => !item.url)
+        if (idx >= 0) {
+          imageList.value[idx].url = url
+        } else {
+          ElMessage.warning('所有位置已满')
+        }
+      } catch {
+        ElMessage.error('图片处理失败')
+      }
+      break
+    }
+  }
+}
+
+onMounted(() => document.addEventListener('paste', handlePaste))
+onUnmounted(() => document.removeEventListener('paste', handlePaste))
 
 // 导出图片
 const exportImage = async () => {
