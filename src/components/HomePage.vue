@@ -10,8 +10,8 @@ import BatchAnnotator from './ImageProcessing/BatchAnnotator.vue'
 import WorkPhotoComparison from './ImageProcessing/WorkPhotoComparison.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
-import UsageGuide from './UsageGuide.vue'
-import SignInSheet from './SignInSheet.vue'
+import UsageGuide from './UsageGuide/UsageGuide.vue'
+import SignInSheet from './DocumentProcessing/SignInSheet.vue'
 
 // 定义当前激活的菜单项索引
 const activeIndex = ref('1')
