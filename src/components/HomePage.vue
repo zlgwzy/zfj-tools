@@ -98,10 +98,6 @@ onMounted(() => {
               <span>批量图片标注</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-menu-item index="5">
-            <el-icon><location /></el-icon>
-            <a href="?tab=5" @click.prevent="handleSelect('5')">绵竹地图</a>
-          </el-menu-item>
           <el-sub-menu index="7">
             <template #title>
               <el-icon><reading /></el-icon>
@@ -111,6 +107,10 @@ onMounted(() => {
               <span>图片处理功能</span>
             </el-menu-item>
           </el-sub-menu>
+          <el-menu-item index="5">
+            <el-icon><location /></el-icon>
+            <a href="?tab=5" @click.prevent="handleSelect('5')">绵竹地图</a>
+          </el-menu-item>
           <el-menu-item index="6">
             <el-icon><document /></el-icon>
             <span>更新日志</span>
