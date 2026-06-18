@@ -45,10 +45,12 @@ const exportPDF = async () => {
     for (let i = 0; i < papers.length; i++) {
       if (i > 0) pdf.addPage()
 
-      // 临时设为 A4 精确宽度，保证截图尺寸与 PDF 匹配
+      // 临时调整（导出时不带边框和预览宽度）
       const origMaxW = papers[i].style.maxWidth
+      const origBorder = papers[i].style.border
       papers[i].style.maxWidth = '794px'
       papers[i].style.width = '794px'
+      papers[i].style.border = 'none'
 
       const canvas = await html2canvas(papers[i], {
         scale: 2,
@@ -56,9 +58,10 @@ const exportPDF = async () => {
         backgroundColor: '#ffffff'
       })
 
-      // 恢复预览宽度
+      // 恢复预览样式
       papers[i].style.maxWidth = origMaxW || ''
       papers[i].style.width = ''
+      papers[i].style.border = origBorder || ''
 
       const imgW = pw
       const imgH = (canvas.height * imgW) / canvas.width
