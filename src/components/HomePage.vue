@@ -11,6 +11,7 @@ import WorkPhotoComparison from './ImageProcessing/WorkPhotoComparison.vue'
 import MianzhuMap from './Map/MianzhuMap.vue'
 import Changelog from './Changelog/Changelog.vue'
 import UsageGuide from './UsageGuide.vue'
+import SignInSheet from './SignInSheet.vue'
 
 // 定义当前激活的菜单项索引
 const activeIndex = ref('1')
@@ -74,10 +75,15 @@ onMounted(() => {
               <span>图片压缩（≤1MB）</span>
             </el-menu-item>
           </el-sub-menu>
-          <el-menu-item index="3">
-            <el-icon><management /></el-icon>
-            <span>文档处理</span>
-          </el-menu-item>
+          <el-sub-menu index="3">
+            <template #title>
+              <el-icon><management /></el-icon>
+              <span>文档处理</span>
+            </template>
+            <el-menu-item index="3-1">
+              <span>签到册生成</span>
+            </el-menu-item>
+          </el-sub-menu>
           <el-menu-item index="4">
             <el-icon><list /></el-icon>
             <span>表格处理</span>
@@ -134,14 +140,7 @@ onMounted(() => {
           <ImageCompressor v-if="activeIndex === '2-7'" />
 
           <!-- 文档处理 -->
-          <div v-if="activeIndex === '3'" class="main-container">
-            <el-card class="welcome-card">
-              <div class="welcome-content" style="text-align: center; padding: 60px">
-                <el-icon style="font-size: 48px; color: #c0c4cc; margin-bottom: 16px"><management /></el-icon>
-                <p style="color: #909399; font-size: 16px;">文档处理模块开发中…</p>
-              </div>
-            </el-card>
-          </div>
+          <SignInSheet v-if="activeIndex === '3-1'" />
 
           <!-- 表格处理 -->
           <div v-if="activeIndex === '4'" class="main-container">
