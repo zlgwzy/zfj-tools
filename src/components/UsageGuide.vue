@@ -46,10 +46,7 @@ const features = [
       { icon: 'EditPen', text: '每张图可单独设置标注文字，调整字号、字体、颜色' },
       { icon: 'Download', text: '导出JPEG或复制到剪贴板PNG' },
     ],
-    tips: [
-      '调整参数后长图会自动更新',
-      '对比图功能已拆分至独立模块，如有需要请使用对比图工具',
-    ]
+    tips: []
   },
   {
     name: '工作照拼接-对比图',
