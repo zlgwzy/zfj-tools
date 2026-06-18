@@ -42,6 +42,7 @@ onMounted(() => {
           :default-active="activeIndex"
           class="el-menu-vertical"
           :collapse="false"
+          unique-opened
           @select="handleSelect"
         >
           <el-menu-item index="1">
