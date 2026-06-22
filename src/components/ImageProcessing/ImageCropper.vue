@@ -84,8 +84,6 @@ const onMouseDown = (e: MouseEvent, handle = '') => {
   if (!imgEl.value || !imageUrl.value) return
   isDragging.value = true
   activeHandle.value = handle
-  const rect = imgEl.value.getBoundingClientRect()
-  const s = imgEl.value.naturalWidth / rect.width
   dragStart.x = e.clientX
   dragStart.y = e.clientY
   dragStart.cx = cropX.value
