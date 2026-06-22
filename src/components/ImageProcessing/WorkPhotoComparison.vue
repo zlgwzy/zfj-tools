@@ -293,7 +293,7 @@ const clearAll = () => { img1.value = ''; img2.value = ''; resultUrl.value = '' 
 .photo-comparison { padding: 20px; }
 .main-card { max-width: 1200px; margin: 0 auto; }
 .card-header { font-size: 18px; font-weight: 500; }
-.content-layout { display: flex; gap: 20px; align-items: stretch; }
+.content-layout { display: flex; gap: 20px; align-items: flex-start; }
 .control-panel { width: 240px; flex-shrink: 0; }
 .upload-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 .upload-box {
@@ -338,7 +338,7 @@ const clearAll = () => { img1.value = ''; img2.value = ''; resultUrl.value = '' 
 .preview-panel { flex: 1; min-width: 0; }
 .result-box { text-align: center; }
 .result-img { max-width: 100%; max-height: 70vh; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; flex: 1; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
+.preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
 .preview-placeholder .el-icon { font-size: 48px; margin-bottom: 12px; }
 .preview-placeholder span { font-size: 16px; }
 </style>
