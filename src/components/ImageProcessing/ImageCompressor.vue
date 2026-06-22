@@ -44,7 +44,6 @@ const doCompress = async () => {
     ctx.drawImage(img, 0, 0, cvs.width, cvs.height)
 
     const mime = outputFormat.value === 'png' ? 'image/png' : 'image/jpeg'
-    const ext = outputFormat.value === 'png' ? 'png' : 'jpg'
     let quality = 0.92
     let url = cvs.toDataURL(mime, quality)
     while (realSize(url) > 1024 * 1024 && quality > 0.1) {
