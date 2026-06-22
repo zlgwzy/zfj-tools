@@ -112,7 +112,6 @@ const exportPDF = async () => {
         <div class="preview-label">A4 打印预览</div>
         <div class="pages-container">
           <div v-for="(pg, pi) in pages" :key="pi" class="page-wrap">
-            <div class="page-number">第 {{ pi + 1 }} / {{ pages.length }} 页</div>
             <div class="a4-paper">
               <div class="paper-title">签 到 册</div>
               <div class="paper-info">
@@ -143,6 +142,7 @@ const exportPDF = async () => {
                   </tr>
                 </tbody>
               </table>
+              <div class="page-number">第 {{ pi + 1 }} / {{ pages.length }} 页</div>
             </div>
           </div>
         </div>
@@ -305,7 +305,7 @@ const exportPDF = async () => {
   font-size: 13px;
   color: #c0c4cc;
   text-align: center;
-  margin-bottom: 4px;
+  margin-top: 12px;
   letter-spacing: 1px;
 }
 
