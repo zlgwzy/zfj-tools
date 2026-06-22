@@ -237,7 +237,7 @@ const clearAll = () => { images.value = []; configText.value = '' }
 
 <style scoped>
 .batch-annotator { padding: 20px; }
-.main-card { max-width: 1100px; margin: 0 auto; }
+.main-card { max-width: 1200px; margin: 0 auto; }
 .card-header { font-size: 18px; font-weight: 500; }
 .content-layout { display: flex; gap: 20px; align-items: flex-start; }
 .control-panel { width: 240px; flex-shrink: 0; }
