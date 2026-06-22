@@ -239,7 +239,7 @@ const clearAll = () => { images.value = []; configText.value = '' }
 .batch-annotator { padding: 20px; }
 .main-card { max-width: 1200px; margin: 0 auto; }
 .card-header { font-size: 18px; font-weight: 500; }
-.content-layout { display: flex; gap: 20px; align-items: flex-start; }
+.content-layout { display: flex; gap: 20px; align-items: stretch; }
 .control-panel { width: 240px; flex-shrink: 0; }
 .upload-area {
   border: 2px dashed #dcdfe6; border-radius: 8px; padding: 18px;
@@ -271,7 +271,7 @@ const clearAll = () => { images.value = []; configText.value = '' }
 .action-row { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; align-items: center; }
 .action-row :deep(.el-button) { width: 100%; max-width: 200px; margin-left: 0 !important; }
 
-.preview-panel { flex: 1; min-width: 0; }
+.preview-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .image-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .image-thumb { position: relative; aspect-ratio: 4/3; border-radius: 4px; overflow: hidden; border: 1px solid #dcdfe6; cursor: grab; user-select: none; transition: box-shadow 0.2s; }
 .image-thumb:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -279,7 +279,7 @@ const clearAll = () => { images.value = []; configText.value = '' }
 .image-thumb.can-drop { border-color: #67c23a; background: #f0f9eb; }
 .thumb-index { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 4px; z-index: 1; }
 .thumb-img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 350px; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
+.preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; flex: 1; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
 .preview-placeholder .el-icon { font-size: 48px; margin-bottom: 12px; }
 .preview-placeholder span { font-size: 16px; }
 </style>

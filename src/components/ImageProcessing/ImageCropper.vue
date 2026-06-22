@@ -370,7 +370,7 @@ const clearAll = () => {
 .content-layout {
   display: flex;
   gap: 20px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .control-panel {
@@ -477,7 +477,7 @@ const clearAll = () => {
   line-height: 1.5;
 }
 
-.preview-panel {
+.preview-panel { display: flex; flex-direction: column; 
   flex: 1;
   min-width: 0;
 }
@@ -551,7 +551,7 @@ const clearAll = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 350px;
+  min-height: 200px; flex: 1;
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;
