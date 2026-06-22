@@ -335,8 +335,9 @@ const clearAll = () => { img1.value = ''; img2.value = ''; resultUrl.value = '' 
   line-height: 1.5; background: #fef6ec; border-left: 3px solid #e6a23c;
   border-radius: 4px; text-align: left;
 }
-.preview-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.preview-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .result-box { text-align: center; }
+.preview-panel .preview-placeholder { align-self: stretch; }
 .result-img { max-width: 100%; max-height: 70vh; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; flex: 1; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
 .preview-placeholder .el-icon { font-size: 48px; margin-bottom: 12px; }
