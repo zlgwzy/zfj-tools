@@ -241,8 +241,9 @@ const copyToClipboard = async () => {
             <img :src="compressedUrl" class="preview-img" />
           </div>
           <div v-if="!imageUrl" class="preview-placeholder" @click="($refs.fileInput as HTMLInputElement)?.click()">
-            <el-icon><Picture /></el-icon>
-            <span>请上传图片</span>
+            <el-icon><Plus /></el-icon>
+            <span>点击上传图片</span>
+            <span class="upload-hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
         </div>
       </div>

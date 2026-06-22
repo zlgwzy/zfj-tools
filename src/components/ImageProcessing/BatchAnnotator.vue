@@ -223,7 +223,7 @@ const clearAll = () => { images.value = []; configText.value = '' }
           <div v-else class="preview-placeholder" @click="($refs.imageInput as HTMLInputElement)?.click()">
             <el-icon><Plus /></el-icon>
             <span>点击上传图片</span>
-            <span class="upload-hint">支持 JPG / PNG</span>
+            <span class="upload-hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
         </div>
       </div>
