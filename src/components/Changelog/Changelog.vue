@@ -71,7 +71,7 @@ onMounted(async () => {
 
 <style scoped>
 .changelog-container {
-  max-width: 1200px;
+  max-width: 750px;
   margin: 0 auto;
   padding: 20px;
   animation: fade-in 0.3s ease-in-out;
