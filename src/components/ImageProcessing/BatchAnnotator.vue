@@ -150,11 +150,6 @@ const clearAll = () => { images.value = []; configText.value = '' }
 
       <div class="content-layout">
         <div class="control-panel">
-          <div class="upload-area" @click="($refs.imageInput as HTMLInputElement)?.click()">
-            <el-icon><Plus /></el-icon>
-            <span>点击上传图片</span>
-            <span class="hint">支持 JPG / PNG</span>
-          </div>
           <input ref="imageInput" type="file" accept="image/*" multiple style="display: none" @change="handleImageUpload" />
 
           <div class="text-config-section">
@@ -225,9 +220,10 @@ const clearAll = () => { images.value = []; configText.value = '' }
               <img :src="url" class="thumb-img" draggable="false" />
             </div>
           </div>
-          <div v-else class="preview-placeholder">
-            <el-icon><Picture /></el-icon>
-            <span>请上传图片和输入需要标注的文本</span>
+          <div v-else class="preview-placeholder" @click="($refs.imageInput as HTMLInputElement)?.click()">
+            <el-icon><Plus /></el-icon>
+            <span>点击上传图片</span>
+            <span class="upload-hint">支持 JPG / PNG</span>
           </div>
         </div>
       </div>
@@ -241,16 +237,6 @@ const clearAll = () => { images.value = []; configText.value = '' }
 .card-header { font-size: 18px; font-weight: 500; }
 .content-layout { display: flex; gap: 20px; align-items: stretch; }
 .control-panel { width: 240px; flex-shrink: 0; }
-.upload-area {
-  border: 2px dashed #dcdfe6; border-radius: 8px; padding: 18px;
-  text-align: center; cursor: pointer; transition: all 0.3s;
-  background: #fafafa; color: #909399;
-}
-.upload-area:hover { border-color: #409eff; background: #f0f9ff; color: #409eff; }
-.upload-area .el-icon { font-size: 24px; display: block; margin: 0 auto 4px; }
-.upload-area span { display: block; font-size: 14px; }
-.upload-area .hint { font-size: 12px; color: #c0c4cc; margin-top: 2px; }
-
 .info-section { margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px; }
 .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
 .info-row:last-child { margin-bottom: 0; }
@@ -279,7 +265,14 @@ const clearAll = () => { images.value = []; configText.value = '' }
 .image-thumb.can-drop { border-color: #67c23a; background: #f0f9eb; }
 .thumb-index { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 4px; z-index: 1; }
 .thumb-img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.preview-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; flex: 1; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
+.preview-placeholder {
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; flex: 1; border: 2px dashed #dcdfe6; border-radius: 8px; color: #c0c4cc; }
+.upload-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
+}
+
 .preview-placeholder .el-icon { font-size: 48px; margin-bottom: 12px; }
 .preview-placeholder span { font-size: 16px; }
 </style>

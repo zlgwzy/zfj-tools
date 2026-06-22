@@ -271,11 +271,6 @@ const clearAll = () => {
 
       <div class="content-layout">
         <div class="control-panel">
-          <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
-            <el-icon><Plus /></el-icon>
-            <span>点击上传图片</span>
-            <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
-          </div>
           <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleUpload" />
 
           <div class="info-section">
@@ -342,7 +337,10 @@ const clearAll = () => {
               </div>
             </template>
           </div>
-          <div v-else class="preview-placeholder">
+          <div v-else class="preview-placeholder" @click="($refs.fileInput as HTMLInputElement)?.click()">
+            <el-icon><Plus /></el-icon>
+            <span>点击上传图片</span>
+            <span class="upload-hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
             <el-icon><Picture /></el-icon>
             <span>请上传图片</span>
           </div>
@@ -376,40 +374,6 @@ const clearAll = () => {
 .control-panel {
   width: 240px;
   flex-shrink: 0;
-}
-
-.upload-area {
-  border: 2px dashed #dcdfe6;
-  border-radius: 8px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #fafafa;
-  color: #909399;
-}
-
-.upload-area:hover {
-  border-color: #409eff;
-  background: #f0f9ff;
-  color: #409eff;
-}
-
-.upload-area .el-icon {
-  font-size: 28px;
-  display: block;
-  margin: 0 auto 6px;
-}
-
-.upload-area span {
-  display: block;
-  font-size: 14px;
-}
-
-.upload-area .hint {
-  font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 4px;
 }
 
 .info-section {
@@ -547,6 +511,7 @@ const clearAll = () => {
 .grid-line.vr { left: 66.66%; top: 0; bottom: 0; width: 1px; }
 
 .preview-placeholder {
+  cursor: pointer; cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -555,6 +520,17 @@ const clearAll = () => {
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
   color: #c0c4cc;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
+}
+.upload-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
 }
 
 .preview-placeholder .el-icon {

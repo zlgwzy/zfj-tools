@@ -227,11 +227,6 @@ const clearAll = () => {
       <div class="content-layout">
         <!-- 左侧：控制面板 -->
         <div class="control-panel">
-          <div class="upload-area" @click="($refs.fileInput as HTMLInputElement)?.click()">
-            <el-icon><Plus /></el-icon>
-            <span>点击上传图片</span>
-            <span class="hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
-          </div>
           <input
             ref="fileInput"
             type="file"
@@ -299,9 +294,10 @@ const clearAll = () => {
               {{ annotation }}
             </div>
           </div>
-          <div v-else class="preview-placeholder">
-            <el-icon><Picture /></el-icon>
-            <span>请上传图片</span>
+          <div v-else class="preview-placeholder" @click="($refs.fileInput as HTMLInputElement)?.click()">
+            <el-icon><Plus /></el-icon>
+            <span>点击上传图片</span>
+            <span class="upload-hint">支持 JPG / PNG · Ctrl+V 粘贴</span>
           </div>
         </div>
       </div>
@@ -335,41 +331,6 @@ const clearAll = () => {
   flex-shrink: 0;
 }
 
-.upload-area {
-  border: 2px dashed #dcdfe6;
-  border-radius: 8px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: #fafafa;
-  color: #909399;
-}
-
-.upload-area:hover {
-  border-color: #409eff;
-  background: #f0f9ff;
-  color: #409eff;
-}
-
-.upload-area .el-icon {
-  font-size: 28px;
-  display: block;
-  margin: 0 auto 6px;
-}
-
-.upload-area span {
-  display: block;
-  font-size: 14px;
-}
-
-.upload-area .hint {
-  font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 4px;
-}
-
-.annotation-section {
   margin-top: 16px;
 }
 
@@ -478,7 +439,7 @@ const clearAll = () => {
 .annotation-overlay.pos-bottom-center { bottom: 8px; left: 8px; right: 8px; text-align: center; }
 .annotation-overlay.pos-bottom-right { bottom: 8px; right: 8px; text-align: right; }
 
-.preview-placeholder {
+.preview-placeholder { cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -489,6 +450,11 @@ const clearAll = () => {
   color: #c0c4cc;
 }
 
+.upload-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
+}
 .preview-placeholder .el-icon {
   font-size: 48px;
   margin-bottom: 12px;
