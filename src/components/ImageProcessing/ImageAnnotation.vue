@@ -331,8 +331,6 @@ const clearAll = () => {
   flex-shrink: 0;
 }
 
-  margin-top: 16px;
-}
 
 .section-title {
   font-size: 14px;
