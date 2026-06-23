@@ -269,6 +269,7 @@ const copyToClipboard = async () => {
   display: flex;
   gap: 20px;
   align-items: stretch;
+  min-height: 500px;
 }
 
 .control-panel {
@@ -333,13 +334,21 @@ const copyToClipboard = async () => {
   text-align: left;
 }
 
-.preview-panel { display: flex; flex-direction: column; 
+.preview-panel { display: flex; flex-direction: column;
   flex: 1;
   min-width: 0;
+  align-items: center;
+}
+
+.preview-panel .preview-placeholder {
+  align-self: stretch;
 }
 
 .preview-box {
   margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .preview-label {

@@ -61,20 +61,29 @@ const onImgLoad = () => {
   natW.value = imgEl.value.naturalWidth
   natH.value = imgEl.value.naturalHeight
 
+  const minW = 80, minH = 60
+  let cw: number, ch: number
+
   // 初始裁剪区域：以图片较短边为基准，居中裁剪 4:3
   if (natW.value / natH.value > 4 / 3) {
-    // 图片更宽，以高度为基准
-    cropH.value = natH.value
-    cropW.value = Math.round(natH.value * 4 / 3)
-    cropX.value = Math.round((natW.value - cropW.value) / 2)
-    cropY.value = 0
+    ch = natH.value
+    cw = Math.round(natH.value * 4 / 3)
   } else {
-    // 图片更高或相等，以宽度为基准
-    cropW.value = natW.value
-    cropH.value = Math.round(natW.value * 3 / 4)
-    cropX.value = 0
-    cropY.value = Math.round((natH.value - cropH.value) / 2)
+    cw = natW.value
+    ch = Math.round(natW.value * 3 / 4)
   }
+
+  // 如果图片太小，直接用全图
+  if (cw > natW.value) cw = natW.value
+  if (ch > natH.value) ch = natH.value
+  // 确保不小于最小裁剪尺寸
+  if (cw < minW) cw = Math.min(minW, natW.value)
+  if (ch < minH) ch = Math.min(minH, natH.value)
+
+  cropW.value = cw
+  cropH.value = ch
+  cropX.value = Math.round((natW.value - cw) / 2)
+  cropY.value = Math.round((natH.value - ch) / 2)
 }
 
 // 裁剪框拖拽与缩放
@@ -130,11 +139,13 @@ const onMouseMove = (e: MouseEvent) => {
     }
 
     // 限制不超出图片边界
-    if (x < 0) { w = Math.max(minW, cropX.value + cropW.value); h = Math.round(w / ratio); x = 0 }
-    if (y < 0) { h = Math.max(minH, cropY.value + cropH.value); w = Math.round(h * ratio); y = 0 }
-    if (x + w > natW.value) { w = natW.value - x; h = Math.round(w / ratio) }
-    if (y + h > natH.value) { h = natH.value - y; w = Math.round(h * ratio) }
+            if (x < 0) { w = Math.min(Math.max(minW, w - x), natW.value); h = Math.round(w / ratio); x = 0 }
+            if (y < 0) { h = Math.min(Math.max(minH, h - y), natH.value); w = Math.round(h * ratio); y = 0 }
+            if (x + w > natW.value) { w = Math.max(minW, natW.value - x); h = Math.round(w / ratio) }
+            if (y + h > natH.value) { h = Math.max(minH, natH.value - y); w = Math.round(h * ratio) }
 
+            if (w > natW.value) w = natW.value
+            if (h > natH.value) h = natH.value
     cropX.value = Math.round(x)
     cropY.value = Math.round(y)
     cropW.value = Math.round(w)
@@ -365,6 +376,7 @@ const clearAll = () => {
   display: flex;
   gap: 20px;
   align-items: stretch;
+  min-height: 500px;
 }
 
 .control-panel {
@@ -437,9 +449,14 @@ const clearAll = () => {
   line-height: 1.5;
 }
 
-.preview-panel { display: flex; flex-direction: column; 
+.preview-panel { display: flex; flex-direction: column;
   flex: 1;
   min-width: 0;
+  align-items: center;
+}
+
+.preview-panel .preview-placeholder {
+  align-self: stretch;
 }
 
 .crop-container {
